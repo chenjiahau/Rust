@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: postgres:13
+    container_name: message_db
+    restart: always
+    environment:
+      POSTGRES_USER: message
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: message
+    ports:
+      - "5432:5432"
