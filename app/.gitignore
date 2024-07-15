@@ -1,0 +1,53 @@
+# Compiled binaries and libraries
+/target/
+
+# Build artifacts
+*.rlib
+
+# Binaries
+/*.exe
+/*.exe.*
+/*.dll
+/*.so
+/*.dylib
+/*.dSYM
+
+# Cargo specific files
+.cargo/
+/*.crate
+
+# Test output
+*.log
+
+# IDE and Editor specific files
+# Visual Studio Code
+.vscode/
+# IntelliJ IDEA / CLion
+.idea/
+*.iml
+# Vim
+*.swp
+*.swo
+*.swn
+# Emacs
+*~
+\#*\#
+.#*
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+# Other editors
+*.kate-swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.old
+
+# Node.js files (if workin
