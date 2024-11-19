@@ -1,8 +1,9 @@
 mod routes;
 mod utils;
 
-use actix_web::{middleware::Logger, App, HttpServer};
-
+use actix_web::{middleware::Logger, App, web, HttpServer};
+use sea_orm::Database;
+use migration::{Migrator, MigratorTrait};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -17,9 +18,16 @@ async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
     let address = (utils::constants::ADDRESS).clone();
     let port: u16 = (utils::constants::PORT).clone();
+    let database_url = (utils::constants::DATABASE_URL).clone();
 
-    HttpServer::new(|| {
+    // Connect to the database
+    let db = Database::connect(database_url).await.unwrap();
+    // Run the migrations when the application starts
+    Migrator::up(&db, None).await.unwrap();
+
+    HttpServer::new(move || {
         App::new()
+            .app_data(web::Data::new(utils::app_state::AppState { db: db.clone() })) // Pass the database connection to the application state
             .wrap(Logger::default()) // Log the requests
             .configure(routes::greet_route::config) // Configure the routes
     })

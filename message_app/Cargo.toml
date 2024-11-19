@@ -3,8 +3,18 @@ name = "message_app"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = [
+    ".",
+    "entity",
+    "migration",
+]
+
 [dependencies]
 actix-web = "4.5.1"
 env_logger = "0.11.3"
 dotenv = "0.15.0"
 lazy_static = "1.4.0"
+sea-orm = { version = "1.1.0", features = [ "sqlx-postgres", "runtime-tokio-rustls", "macros" ] }
+entity = { path = "entity" }
+migration = { path = "migration" }

@@ -1,5 +1,5 @@
 # Compiled binaries and libraries
-/target/
+target/
 
 # Build artifacts
 *.rlib
