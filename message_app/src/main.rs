@@ -1,8 +1,8 @@
 mod utils;
 
-use actix_web::{get, middleware::Logger, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
 
-#[get("/")]
+#[get("/greet")]
 async fn greet() -> impl Responder {
     HttpResponse::Ok().body("Message app")
 }
@@ -24,7 +24,10 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .wrap(Logger::default()) // Log the requests
-            .service(greet) // register the greet service
+            .service(
+                web::scope("/api") // Set the scope of the routes
+                    .service(greet)
+            )
     })
     .bind((address, port))? // bind the server to the address and port
     .run()
