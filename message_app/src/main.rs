@@ -29,7 +29,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(utils::app_state::AppState { db: db.clone() })) // Pass the database connection to the application state
             .wrap(Logger::default()) // Log the requests
-            .configure(routes::greet_route::config) // Configure the routes
+            .configure(routes::greet_routes::config) // Configure greet routes
+            .configure(routes::api_routes::config) // Configure API routes
     })
     .bind((address, port))? // bind the server to the address and port
     .run()

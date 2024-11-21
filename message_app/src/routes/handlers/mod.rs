@@ -1,1 +1,2 @@
-pub mod greet_handler;
+pub mod greet_handlers;
+pub mod uauth_handlers;

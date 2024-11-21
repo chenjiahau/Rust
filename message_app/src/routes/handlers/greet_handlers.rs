@@ -18,7 +18,7 @@ struct GreetData {
 }
 
 // Return a simple greeting message in JSON format
-#[get("/greet/message")]
+#[get("/message")]
 async fn greet_message() -> impl Responder {
     let greet_data = GreetData { message: "Hello, World!".to_string() };
     api_response::json_response(&greet_data, 200)

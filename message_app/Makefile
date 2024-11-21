@@ -14,15 +14,14 @@ install_sea_orm:
 init_migration:
 	sea-orm-cli migrate init
 
-# Run this command to generate entity(only one time)
-generate_entity:
-	sea-orm-cli generate entity -o entity/src
-
 create_migration:
 	sea-orm-cli migrate generate $(ctn)
 
 migrate_up:
 	sea-orm-cli migrate up
+
+generate_entity:
+	sea-orm-cli generate entity -o entity/src
 
 .PHONY:  create_db drop_db install_sea_orm init_migration generate_entity create_migration migrate_up
 
