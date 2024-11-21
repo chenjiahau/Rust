@@ -3,9 +3,9 @@ use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, TokenData, 
 use serde::{Serialize, Deserialize};
 use crate::utils::constants;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-    pub sub: String,
+    pub exp: usize,
     pub iat: usize,
     pub id: i32,
     pub email: String,
@@ -13,10 +13,10 @@ pub struct Claims {
 
 pub fn encode_jwt(id: i32, email: String) -> Result<String, jsonwebtoken::errors::Error> {
     let now = Utc::now();
-    let expire = Duration::hours(24);
+    let expire = Duration::days(1);
 
     let claims = Claims {
-        sub: "auth".to_string(),
+        exp: (now + expire).timestamp() as usize,
         iat: now.timestamp() as usize,
         id,
         email,

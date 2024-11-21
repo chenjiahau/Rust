@@ -1,9 +1,11 @@
+use std::fmt::Display;
 use actix_web::body::BoxBody;
 use actix_web::http::{header, StatusCode};
 use actix_web::web::BytesMut;
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use serde::{Serialize, Deserialize};
+use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+use serde::Serialize;
 
+#[derive(Debug)]
 pub struct ApiResponse {
     pub body: String,
     response_code: StatusCode
@@ -19,6 +21,24 @@ impl ApiResponse {
           response_code: StatusCode::from_u16(status_code).unwrap()
       }
   }
+}
+
+impl Display for ApiResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Error: {} \n Status Code: {}", self.body, self.response_code)
+    }
+}
+
+impl ResponseError for ApiResponse {
+    fn status_code(&self) -> StatusCode {
+        self.response_code
+    }
+
+    fn error_response(&self) -> HttpResponse {
+        HttpResponse::build(self.response_code)
+            .insert_header((header::CONTENT_TYPE, "application/json"))
+            .body(self.body.clone())
+    }
 }
 
 // This trait is implemented for ApiResponse so that it can be converted into an HTTP response
