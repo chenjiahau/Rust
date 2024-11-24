@@ -2,6 +2,7 @@ mod routes;
 mod utils;
 
 use actix_web::{middleware::Logger, App, web, HttpServer};
+use actix_cors::Cors;
 use sea_orm::Database;
 use migration::{Migrator, MigratorTrait};
 
@@ -29,6 +30,12 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(utils::app_state::AppState { db: db.clone() })) // Pass the database connection to the application state
             .wrap(Logger::default()) // Log the requests
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    .allow_any_method()
+                    .allow_any_header()
+            ) // Enable CORS
             .configure(routes::greet_routes::config) // Configure greet routes
             .configure(routes::api_routes::config) // Configure API routes
     })

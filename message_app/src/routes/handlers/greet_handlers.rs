@@ -21,5 +21,5 @@ struct GreetData {
 #[get("/message")]
 async fn greet_message() -> impl Responder {
     let greet_data = GreetData { message: "Hello, World!".to_string() };
-    api_response::json_response(&greet_data, 200)
+    api_response::ApiResponse::new(200, serde_json::to_string(&greet_data).unwrap())
 }

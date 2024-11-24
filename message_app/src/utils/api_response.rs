@@ -11,9 +11,6 @@ pub struct ApiResponse {
     response_code: StatusCode
 }
 
-/**
- *  Response as text
- **/
 impl ApiResponse {
     pub fn new(status_code: u16, body: String) -> Self {
       ApiResponse {
@@ -47,15 +44,26 @@ impl Responder for ApiResponse {
 
     fn respond_to(self, _: &HttpRequest) -> HttpResponse<Self::Body> {
         let body: BoxBody = BoxBody::new(BytesMut::from(self.body.as_bytes()));
-        HttpResponse::new(self.response_code).set_body(body)
+
+        match serde_json::from_str::<serde_json::Value>(&self.body) {
+            Ok(_) => {
+                HttpResponse::build(self.response_code)
+                    .insert_header((header::CONTENT_TYPE, "application/json"))
+                    .body(body)
+            }
+            Err(_) => {
+                HttpResponse::build(self.response_code)
+                    .insert_header((header::CONTENT_TYPE, "text/plain"))
+                    .body(body)
+            }
+        }
     }
 }
 
 /**
- *  Response as JSON
- **/
-// This struct is used to create a default response
-#[derive(Serialize)]
+ * This struct is used to create a default response
+ */
+#[derive(Debug, Serialize)]
 pub struct DefaultResponse<T> {
     pub code: i32,
     pub data: T,
@@ -66,15 +74,5 @@ pub fn generate_response<T>(code: i32, data: T) -> DefaultResponse<T> {
     DefaultResponse {
         code,
         data
-    }
-}
-
-// This function is used to create a JSON response from a serializable object
-pub fn json_response<T: Serialize>(data: &T, status_code: u16) -> HttpResponse<BoxBody> {
-    match serde_json::to_string(data) {
-        Ok(json_body) => HttpResponse::build(actix_web::http::StatusCode::from_u16(status_code).unwrap())
-            .insert_header((header::CONTENT_TYPE, "application/json"))
-            .body(json_body),
-        Err(_) => HttpResponse::InternalServerError().body("Failed to serialize JSON"),
     }
 }

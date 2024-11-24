@@ -2,13 +2,17 @@ use actix_web::{post, web, Responder};
 use sea_orm::{Set, ActiveModelTrait, EntityTrait, QueryFilter, Condition, ColumnTrait};
 use crate::utils::{app_state::{self, AppState}, api_response};
 use serde::{Serialize, Deserialize};
+use validator::Validate;
 use sha256::digest;
 use crate::utils::jwt::encode_jwt;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 struct RegisterJSON {
+    #[validate (length(min = 8, max = 32))]
     name: String,
+    #[validate (email)]
     email: String,
+    #[validate (length(min = 8, max = 32))]
     password: String
 }
 
@@ -18,9 +22,11 @@ struct LoginJSON {
     password: String
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Validate)]
 struct RegisterResponse {
+    #[validate (length (min = 8, max = 32))]
     name: String,
+    #[validate (email)]
     email: String,
 }
 
@@ -37,6 +43,11 @@ async fn register(
     app_state: web::Data::<AppState>,
     register_json: web::Json<RegisterJSON>
 ) -> impl Responder {
+    if register_json.validate().is_err() {
+        let response = api_response::generate_response(400, "Invalid input");
+        return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+    }
+
     let register_model = entity::users::ActiveModel {
         name: Set(register_json.name.clone()),
         email: Set(register_json.email.clone()),
@@ -51,7 +62,7 @@ async fn register(
     };
 
     let response = api_response::generate_response(200, user_data);
-    api_response::json_response(&response, 200)
+    api_response::ApiResponse::new(200, serde_json::to_string(&response).unwrap())
 }
 
 #[post("/login")]
@@ -68,7 +79,8 @@ async fn login(
         ).one(&app_state.db).await.unwrap();
 
     if user.is_none() {
-        return api_response::json_response(&"User not found", 404);
+        let response = api_response::generate_response(404, "User not found");
+        return api_response::ApiResponse::new(404, serde_json::to_string(&response).unwrap());
     }
 
     let mut login_data = LoginResponse {
@@ -82,5 +94,5 @@ async fn login(
     login_data.token = token;
 
     let response = api_response::generate_response(200, login_data);
-    api_response::json_response(&response, 200)
+    api_response::ApiResponse::new(200, serde_json::to_string(&response).unwrap())
 }
