@@ -1,4 +1,4 @@
-use actix_web::{post, web, Responder};
+use actix_web::{post, web, Responder, Error};
 use sea_orm::{Set, ActiveModelTrait, EntityTrait, QueryFilter, Condition, ColumnTrait};
 use crate::utils::{app_state::{self, AppState}, api_response};
 use validator::Validate;
@@ -10,24 +10,42 @@ use crate::utils::jwt::encode_jwt;
 #[post("/register")]
 async fn register(
     app_state: web::Data::<AppState>,
-    data: web::Json<register_model::RegisterRequestModel>
+    data: Result<web::Json<register_model::RegisterRequestModel>, Error>
 ) -> impl Responder {
-    if data.validate().is_err() {
-        let response = api_response::generate_response(400, "Invalid input");
-        return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
-    }
+    let data = match data {
+        Ok(json) => {
+            if json.validate().is_err() {
+                let response = api_response::generate_response(400, "Invalid input");
+                return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+            }
 
-    let register_model = entity::users::ActiveModel {
+            json.into_inner()
+        },
+        Err(_) => {
+            let response = api_response::generate_response(400, "Invalid input");
+            return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+        }
+    };
+
+    let user = entity::users::ActiveModel {
         name: Set(data.name.clone()),
         email: Set(data.email.clone()),
         password: Set(digest(&data.password)), // Hash the password
         is_active: Set(true),
         ..Default::default()
-    }.insert(&app_state.db).await.unwrap();
+    };
+
+    let user = match user.insert(&app_state.db).await {
+        Ok(user) => { user},
+        Err(_) => {
+            let response = api_response::generate_response(400, "User already exists");
+            return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+        }
+    };
 
     let user_data = register_model::RegisterModel {
-        name: register_model.name.clone(),
-        email: register_model.email.clone(),
+        name: user.name.clone(),
+        email: user.email.clone(),
     };
 
     let response = api_response::generate_response(200, user_data);
@@ -37,15 +55,38 @@ async fn register(
 #[post("/login")]
 async fn login(
     app_state: web::Data::<AppState>,
-    data: web::Json<login_model::LoginRequestModel>
+    data: Result<web::Json<login_model::LoginRequestModel>, Error>
 ) -> impl Responder {
+    let data = match data {
+        Ok(json) => {
+            if json.validate().is_err() {
+                let response = api_response::generate_response(400, "Invalid input");
+                return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+            }
+
+            json.into_inner()
+        },
+        Err(_) => {
+            let response = api_response::generate_response(400, "Invalid input");
+            return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+        }
+    };
+
     let user = entity::users::Entity::find()
         .filter(
             Condition::all()
                 .add(entity::users::Column::Email.eq(&data.email))
                 .add(entity::users::Column::Password.eq(digest(&data.password))) // Hash the password
                 .add(entity::users::Column::IsActive.eq(true))
-        ).one(&app_state.db).await.unwrap();
+        );
+
+    let user = match user.one(&app_state.db).await {
+        Ok(user) => { user},
+        Err(_) => {
+            let response = api_response::generate_response(404, "User not found");
+            return api_response::ApiResponse::new(404, serde_json::to_string(&response).unwrap());
+        }
+    };
 
     if user.is_none() {
         let response = api_response::generate_response(404, "User not found");
