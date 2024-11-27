@@ -16,6 +16,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                     .service(
                         web::scope("/user")
                             .service(handlers::user_handlers::user)
+                            .service(handlers::user_handlers::update_user)
                     )
             )
     );

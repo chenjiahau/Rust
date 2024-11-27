@@ -1,6 +1,6 @@
 use actix_web::{get, web, Responder};
 use sea_orm::{ConnectionTrait, Statement};
-use crate::utils::{app_state::{self, AppState}, api_response};
+use crate::utils::{app_state::AppState, api_response};
 use serde::Serialize;
 
 // Return a simple greeting message

@@ -1,6 +1,6 @@
 use actix_web::{post, web, Responder, Error};
 use sea_orm::{Set, ActiveModelTrait, EntityTrait, QueryFilter, Condition, ColumnTrait};
-use crate::utils::{app_state::{self, AppState}, api_response};
+use crate::utils::{app_state::AppState, api_response};
 use validator::Validate;
 use sha256::digest;
 
