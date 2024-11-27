@@ -1,4 +1,4 @@
-use actix_web::{error, Error};
+use actix_web::{HttpMessage, error, Error};
 use actix_web::body::MessageBody;
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::middleware::Next;
@@ -42,6 +42,8 @@ pub async fn check_auth_middleware (
     if claim.claims.exp < now {
         return Err(Error::from(api_response::ApiResponse::new(401, serde_json::to_string(&error_response).unwrap())));
     }
+
+    req.extensions_mut().insert(claim.claims);
 
     next.call(req).await
         .map_err(| _err| {

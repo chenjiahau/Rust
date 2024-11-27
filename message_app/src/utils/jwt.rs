@@ -1,14 +1,31 @@
+use std::future;
 use chrono::{Duration, Utc};
+use actix_web::{FromRequest, HttpMessage};
 use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, TokenData, Validation};
 use serde::{Serialize, Deserialize};
 use crate::utils::constants;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub exp: usize,
     pub iat: usize,
     pub id: i32,
     pub email: String,
+}
+
+impl FromRequest for Claims {
+    type Error = actix_web::Error;
+    type Future = future::Ready<Result<Self, Self::Error>>;
+
+    fn from_request(
+        req: &actix_web::HttpRequest,
+        _payload: &mut actix_web::dev::Payload
+    ) -> std::future::Ready<Result<Claims, actix_web::Error>> {
+        match req.extensions().get::<Claims>() {
+            Some(claims) => future::ready(Ok(claims.clone())),
+            None => future::ready(Err(actix_web::error::ErrorUnauthorized("Unauthorized"))),
+        }
+    }
 }
 
 pub fn encode_jwt(id: i32, email: String) -> Result<String, jsonwebtoken::errors::Error> {
