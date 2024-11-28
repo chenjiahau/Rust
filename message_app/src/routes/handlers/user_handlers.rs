@@ -36,6 +36,30 @@ pub async fn user(
     }
 }
 
+#[get("/all")]
+pub async fn get_all_users(
+    app_state: web::Data::<AppState>
+) -> impl Responder {
+    let user_query = entity::users::Entity::find().all(&app_state.db);
+
+    match user_query.await {
+        Ok(user_query) => {
+            let user_query = user_query.into_iter().map(|user_query| {
+                user_model::UserModel {
+                    id: user_query.id,
+                    name: user_query.name,
+                    email: user_query.email,
+                }
+            }).collect::<Vec<user_model::UserModel>>();
+
+            return api_response::ApiResponse::new(200, serde_json::to_string(&user_query).unwrap());
+        },
+        Err(_) => {
+            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+        }
+    }
+}
+
 #[get("/{id}")]
 pub async fn get_user_by_id(
     app_state: web::Data::<AppState>,
