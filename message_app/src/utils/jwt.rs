@@ -3,13 +3,15 @@ use chrono::{Duration, Utc};
 use actix_web::{FromRequest, HttpMessage};
 use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, TokenData, Validation};
 use serde::{Serialize, Deserialize};
+use uuid::Uuid;
+
 use crate::utils::constants;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub exp: usize,
     pub iat: usize,
-    pub id: i32,
+    pub id: Uuid,
     pub email: String,
 }
 
@@ -28,7 +30,7 @@ impl FromRequest for Claims {
     }
 }
 
-pub fn encode_jwt(id: i32, email: String) -> Result<String, jsonwebtoken::errors::Error> {
+pub fn encode_jwt(id: Uuid, email: String) -> Result<String, jsonwebtoken::errors::Error> {
     let now = Utc::now();
     let expire = Duration::days(1);
 

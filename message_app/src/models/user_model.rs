@@ -1,5 +1,6 @@
 use serde::{Serialize, Deserialize};
 use validator::Validate;
+use uuid::Uuid;
 
 #[derive(Deserialize, Validate)]
 pub struct UserRequestModel {
@@ -13,7 +14,7 @@ pub struct UserRequestModel {
 
 #[derive(Serialize)]
 pub struct UserModel {
-    pub id: i32,
+    pub id: Uuid,
     pub name: String,
     pub email: String
 }

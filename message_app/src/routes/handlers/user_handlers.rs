@@ -3,13 +3,14 @@ use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, Set};
 use serde::Deserialize;
 use validator::Validate;
 use sha256::digest;
+use uuid::Uuid;
 
 use crate::models::user_model;
 use crate::utils::{api_response, app_state::AppState, jwt::Claims};
 
 #[derive(Debug, Deserialize)]
 struct Param {
-    id: i32
+    id: Uuid
 }
 
 #[get("")]

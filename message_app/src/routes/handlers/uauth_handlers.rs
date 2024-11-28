@@ -3,6 +3,7 @@ use sea_orm::{Set, ActiveModelTrait, EntityTrait, QueryFilter, Condition, Column
 use crate::utils::{app_state::AppState, api_response};
 use validator::Validate;
 use sha256::digest;
+use uuid::Uuid;
 
 use crate::models::{register_model, login_model};
 use crate::utils::jwt::encode_jwt;
@@ -28,6 +29,7 @@ async fn register(
     };
 
     let user = entity::users::ActiveModel {
+        id: Set(Uuid::new_v4()),
         name: Set(data.name.clone()),
         email: Set(data.email.clone()),
         password: Set(digest(&data.password)), // Hash the password
@@ -37,8 +39,8 @@ async fn register(
 
     let user = match user.insert(&app_state.db).await {
         Ok(user) => { user},
-        Err(_) => {
-            let response = api_response::generate_response(400, "User already exists");
+        Err(e) => {
+            let response = api_response::generate_response(400, e.to_string());
             return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
         }
     };
