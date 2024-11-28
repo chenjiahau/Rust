@@ -19,6 +19,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                             .service(handlers::user_handlers::update_user)
                             .service(handlers::user_handlers::get_all_users)
                             .service(handlers::user_handlers::get_user_by_id)
+                            .service(handlers::user_handlers::delete_user)
                     )
             )
     );

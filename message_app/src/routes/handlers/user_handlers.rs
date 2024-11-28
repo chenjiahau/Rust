@@ -1,4 +1,4 @@
-use actix_web::{get, post, web, Responder, Error};
+use actix_web::{delete, get, post, web, Error, Responder};
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, Set};
 use serde::Deserialize;
 use validator::Validate;
@@ -21,6 +21,10 @@ pub async fn user(
 
     match user_query.await {
         Ok(user_query) => {
+            if user_query.is_none() {
+                return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+            }
+
             let user_query = user_query.unwrap();
             let user_model = user_model::UserModel {
                 id: user_query.id,
@@ -136,6 +140,29 @@ pub async fn update_user(
             };
 
             return api_response::ApiResponse::new(200, serde_json::to_string(&user_model).unwrap());
+        },
+        Err(_) => {
+            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+        }
+    }
+}
+
+#[delete("")]
+pub async fn delete_user(
+    app_state: web::Data::<AppState>,
+    claims: Claims
+) -> impl Responder {
+    let user_query = entity::users::Entity::find_by_id(claims.id).one(&app_state.db);
+    let user_model = match user_query.await {
+        Ok(user_query) => { user_query.unwrap().into_active_model() },
+        Err(_) => {
+            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+        }
+    };
+
+    match user_model.delete(&app_state.db).await {
+        Ok(_) => {
+            return api_response::ApiResponse::new(200, serde_json::to_string(&api_response::generate_response(200, "User deleted")).unwrap());
         },
         Err(_) => {
             return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
