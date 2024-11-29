@@ -11,15 +11,14 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Roles::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(Roles::Id)
-                            .uuid()
-                            .not_null()
-                            .primary_key(),
-                    )
+                    .col(ColumnDef::new(Roles::Id).uuid().not_null().primary_key())
                     .col(string(Roles::Title).not_null().unique_key())
                     .col(integer(Roles::Value).not_null().unique_key())
-                    .col(date_time(Roles::CreatedAt).not_null().default(Expr::current_timestamp()))
+                    .col(
+                        date_time(Roles::CreatedAt)
+                            .not_null()
+                            .default(Expr::current_timestamp()),
+                    )
                     .to_owned(),
             )
             .await
@@ -34,10 +33,10 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum Roles {
+pub enum Roles {
     Table,
     Id,
     Title,
     Value,
-    CreatedAt
+    CreatedAt,
 }

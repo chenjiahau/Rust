@@ -11,17 +11,16 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Users::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(Users::Id)
-                            .uuid()
-                            .not_null()
-                            .primary_key(),
-                    )
+                    .col(ColumnDef::new(Users::Id).uuid().not_null().primary_key())
                     .col(string(Users::Name).not_null())
                     .col(string(Users::Email).not_null().unique_key())
                     .col(string(Users::Password).not_null())
                     .col(boolean(Users::IsActive).not_null().default(false))
-                    .col(date_time(Users::CreatedAt).not_null().default(Expr::current_timestamp()))
+                    .col(
+                        date_time(Users::CreatedAt)
+                            .not_null()
+                            .default(Expr::current_timestamp()),
+                    )
                     .to_owned(),
             )
             .await
@@ -36,7 +35,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum Users {
+pub enum Users {
     Table,
     Id,
     Name,
