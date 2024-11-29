@@ -16,6 +16,7 @@ pub struct UserRequestModel {
 pub struct UserModel {
     pub id: Uuid,
     pub name: String,
-    pub email: String
+    pub email: String,
+    pub role_id: Option<Uuid>
 }
 

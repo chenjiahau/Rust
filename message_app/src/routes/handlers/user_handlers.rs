@@ -18,7 +18,9 @@ pub async fn user(
     app_state: web::Data::<AppState>,
     claims: Claims
 ) -> impl Responder {
-    let user_query = entity::users::Entity::find_by_id(claims.id).one(&app_state.db);
+    let user_query = entity::users::Entity::find_by_id(claims.id)
+        .find_also_related(entity::user_roles::Entity)
+        .one(&app_state.db);
 
     match user_query.await {
         Ok(user_query) => {
@@ -28,9 +30,10 @@ pub async fn user(
 
             let user_query = user_query.unwrap();
             let user_model = user_model::UserModel {
-                id: user_query.id,
-                name: user_query.name,
-                email: user_query.email,
+                id: user_query.0.id,
+                name: user_query.0.name,
+                email: user_query.0.email,
+                role_id: Some(user_query.1.as_ref().unwrap().role_id)
             };
 
             return api_response::ApiResponse::new(200, serde_json::to_string(&user_model).unwrap());
@@ -45,15 +48,18 @@ pub async fn user(
 pub async fn get_all_users(
     app_state: web::Data::<AppState>
 ) -> impl Responder {
-    let user_query = entity::users::Entity::find().all(&app_state.db);
+    let user_query = entity::users::Entity::find()
+        .find_also_related(entity::user_roles::Entity)
+        .all(&app_state.db);
 
     match user_query.await {
         Ok(user_query) => {
             let user_query = user_query.into_iter().map(|user_query| {
                 user_model::UserModel {
-                    id: user_query.id,
-                    name: user_query.name,
-                    email: user_query.email,
+                    id: user_query.0.id,
+                    name: user_query.0.name,
+                    email: user_query.0.email,
+                    role_id: Some(user_query.1.as_ref().unwrap().role_id)
                 }
             }).collect::<Vec<user_model::UserModel>>();
 
@@ -70,7 +76,9 @@ pub async fn get_user_by_id(
     app_state: web::Data::<AppState>,
     param: web::Path<Param>
 ) -> impl Responder {
-    let user_query = entity::users::Entity::find_by_id(param.id).one(&app_state.db);
+    let user_query = entity::users::Entity::find_by_id(param.id)
+        .find_also_related(entity::user_roles::Entity)
+        .one(&app_state.db);
 
     match user_query.await {
         Ok(user_query) => {
@@ -80,9 +88,10 @@ pub async fn get_user_by_id(
 
             let user_query = user_query.unwrap();
             let user_model = user_model::UserModel {
-                id: user_query.id,
-                name: user_query.name,
-                email: user_query.email,
+                id: user_query.0.id,
+                name: user_query.0.name,
+                email: user_query.0.email,
+                role_id: Some(user_query.1.as_ref().unwrap().role_id)
             };
 
             return api_response::ApiResponse::new(200, serde_json::to_string(&user_model).unwrap());
@@ -138,6 +147,7 @@ pub async fn update_user(
                 id: model.id,
                 name: model.name.clone(),
                 email: model.email.clone(),
+                role_id: None
             };
 
             return api_response::ApiResponse::new(200, serde_json::to_string(&user_model).unwrap());
