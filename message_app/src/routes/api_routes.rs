@@ -21,6 +21,14 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                             .service(handlers::user_handlers::get_user_by_id)
                             .service(handlers::user_handlers::delete_user)
                     )
+                    .service(
+                        web::scope("/role")
+                            .service(handlers::role_handlers::get_all_role)
+                            .service(handlers::role_handlers::get_role)
+                            .service(handlers::role_handlers::create_role)
+                            .service(handlers::role_handlers::update_role)
+                            .service(handlers::role_handlers::delete_role)
+                    )
             )
     );
 }
