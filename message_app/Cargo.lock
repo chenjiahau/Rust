@@ -914,6 +914,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "lazy_static",
+ "serde",
 ]
 
 [[package]]
