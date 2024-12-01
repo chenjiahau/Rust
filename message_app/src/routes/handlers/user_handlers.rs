@@ -25,7 +25,8 @@ pub async fn user(
     match user_query.await {
         Ok(user_query) => {
             if user_query.is_none() {
-                return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+                return api_response::ApiResponse
+                    ::error(api_response::DefaultErrorResponse::new(400, "User not found")).to_http_response();
             }
 
             let user_query = user_query.unwrap();
@@ -36,10 +37,11 @@ pub async fn user(
                 role_id: Some(user_query.1.as_ref().unwrap().role_id)
             };
 
-            return api_response::ApiResponse::new(200, serde_json::to_string(&user_model).unwrap());
+            return api_response::ApiResponse::ok(user_model).to_http_response();
         },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "User not found")).to_http_response();
         }
     }
 }
@@ -63,10 +65,11 @@ pub async fn get_all_users(
                 }
             }).collect::<Vec<user_model::UserModel>>();
 
-            return api_response::ApiResponse::new(200, serde_json::to_string(&user_query).unwrap());
+            return api_response::ApiResponse::ok(user_query).to_http_response();
         },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "Users not found")).to_http_response();
         }
     }
 }
@@ -83,7 +86,8 @@ pub async fn get_user_by_id(
     match user_query.await {
         Ok(user_query) => {
             if user_query.is_none() {
-                return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+                return api_response::ApiResponse
+                    ::error(api_response::DefaultErrorResponse::new(400, "User not found")).to_http_response();
             }
 
             let user_query = user_query.unwrap();
@@ -94,10 +98,11 @@ pub async fn get_user_by_id(
                 role_id: Some(user_query.1.as_ref().unwrap().role_id)
             };
 
-            return api_response::ApiResponse::new(200, serde_json::to_string(&user_model).unwrap());
+            return api_response::ApiResponse::ok(user_model).to_http_response();
         },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "User not found")).to_http_response();
         }
     }
 }
@@ -111,15 +116,15 @@ pub async fn update_user(
     let data = match data {
         Ok(json) => {
             if json.validate().is_err() {
-                let response = api_response::generate_response(400, "Invalid input");
-                return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+                return api_response::ApiResponse
+                    ::error(api_response::DefaultErrorResponse::new(400, "Invalid input")).to_http_response();
             }
 
             json.into_inner()
         },
         Err(_) => {
-            let response = api_response::generate_response(400, "Invalid input");
-            return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "Invalid input")).to_http_response();
         }
     };
 
@@ -127,7 +132,8 @@ pub async fn update_user(
     let mut user_model = match user_query.await {
         Ok(user_query) => { user_query.unwrap().into_active_model() },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "User not found")).to_http_response();
         }
     };
 
@@ -150,10 +156,11 @@ pub async fn update_user(
                 role_id: None
             };
 
-            return api_response::ApiResponse::new(200, serde_json::to_string(&user_model).unwrap());
+            return api_response::ApiResponse::ok(user_model).to_http_response();
         },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "User not found")).to_http_response();
         }
     }
 }
@@ -167,16 +174,18 @@ pub async fn delete_user(
     let user_model = match user_query.await {
         Ok(user_query) => { user_query.unwrap().into_active_model() },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "User not found")).to_http_response();
         }
     };
 
     match user_model.delete(&app_state.db).await {
         Ok(_) => {
-            return api_response::ApiResponse::new(200, serde_json::to_string(&api_response::generate_response(200, "User deleted")).unwrap());
+            return api_response::ApiResponse::ok("User deleted").to_http_response();
         },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "User not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "User not found")).to_http_response();
         }
     }
 }

@@ -21,17 +21,32 @@ pub async fn check_auth_middleware (
 
     // Check if the Authorization header is present
     if auth.is_none() {
-        return Err(Error::from(api_response::ApiResponse::new(401, serde_json::to_string(&error_response).unwrap())));
+        return Err(
+            error::InternalError::from_response(
+                error::ErrorUnauthorized("Unauthorized"),
+                api_response::ApiResponse::unauthorized(error_response).to_http_response()
+            ).into()
+        );
     }
 
     // Check if the Authorization header is in the correct format
     let str_ary = auth.unwrap().to_str().unwrap().split(" ").collect::<Vec<&str>>();
     if str_ary.len() != 2 {
-        return Err(Error::from(api_response::ApiResponse::new(401, serde_json::to_string(&error_response).unwrap())));
+        return Err(
+            error::InternalError::from_response(
+                error::ErrorUnauthorized("Unauthorized"),
+                api_response::ApiResponse::unauthorized(error_response).to_http_response()
+            ).into()
+        );
     }
 
     if str_ary[0] != "Bearer" {
-        return Err(Error::from(api_response::ApiResponse::new(401, serde_json::to_string(&error_response).unwrap())));
+        return Err(
+            error::InternalError::from_response(
+                error::ErrorUnauthorized("Unauthorized"),
+                api_response::ApiResponse::unauthorized(error_response).to_http_response()
+            ).into()
+        );
     }
 
     // Check if the token has expired
@@ -40,7 +55,12 @@ pub async fn check_auth_middleware (
     let now = chrono::Utc::now().timestamp() as usize;
 
     if claim.claims.exp < now {
-        return Err(Error::from(api_response::ApiResponse::new(401, serde_json::to_string(&error_response).unwrap())));
+        return Err(
+            error::InternalError::from_response(
+                error::ErrorUnauthorized("Unauthorized"),
+                api_response::ApiResponse::unauthorized(error_response).to_http_response()
+            ).into()
+        );
     }
 
     req.extensions_mut().insert(claim.claims);

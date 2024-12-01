@@ -28,10 +28,11 @@ pub async fn get_all_role(
                 }
             }).collect::<Vec<role_model::RoleModel>>();
 
-            return api_response::ApiResponse::new(200, serde_json::to_string(&roles_query).unwrap());
+            api_response::ApiResponse::ok(roles_query).to_http_response()
         },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "Roles not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "Roles not found")).to_http_response();
         }
     }
 }
@@ -46,7 +47,8 @@ pub async fn get_role(
     match role_query.await {
         Ok(role_query) => {
             if role_query.is_none() {
-                return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "Role not found")).unwrap());
+                return api_response::ApiResponse
+                    ::error(api_response::DefaultErrorResponse::new(400, "Role not found")).to_http_response();
             }
 
             let role_query = role_query.unwrap();
@@ -56,10 +58,11 @@ pub async fn get_role(
                 value: role_query.value
             };
 
-            return api_response::ApiResponse::new(200, serde_json::to_string(&role_model).unwrap());
+            api_response::ApiResponse::ok(role_model).to_http_response()
         },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "Role not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "Role not found")).to_http_response();
         }
     }
 }
@@ -72,15 +75,15 @@ async fn create_role(
     let data = match data {
         Ok(json) => {
             if json.validate().is_err() {
-                let response = api_response::generate_response(400, "Invalid input");
-                return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+                return api_response::ApiResponse
+                    ::error(api_response::DefaultErrorResponse::new(400, "Invalid input")).to_http_response();
             }
 
             json.into_inner()
         },
         Err(_) => {
-            let response = api_response::generate_response(400, "Invalid input");
-            return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "Invalid input")).to_http_response();
         }
     };
 
@@ -94,8 +97,8 @@ async fn create_role(
     let role = match role.insert(&app_state.db).await {
         Ok(role) => { role},
         Err(e) => {
-            let response = api_response::generate_response(400, e.to_string());
-            return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, &e.to_string())).to_http_response();
         }
     };
 
@@ -105,8 +108,7 @@ async fn create_role(
         value: role.value.clone()
     };
 
-    let response = api_response::generate_response(200, role_data);
-    api_response::ApiResponse::new(200, serde_json::to_string(&response).unwrap())
+    api_response::ApiResponse::ok(role_data).to_http_response()
 }
 
 #[put("/{id}")]
@@ -118,15 +120,15 @@ pub async fn update_role(
     let data = match data {
         Ok(json) => {
             if json.validate().is_err() {
-                let response = api_response::generate_response(400, "Invalid input");
-                return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+                return api_response::ApiResponse
+                    ::error(api_response::DefaultErrorResponse::new(400, "Invalid input")).to_http_response();
             }
 
             json.into_inner()
         },
         Err(_) => {
-            let response = api_response::generate_response(400, "Invalid input");
-            return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "Invalid input")).to_http_response();
         }
     };
 
@@ -134,7 +136,8 @@ pub async fn update_role(
     let mut role_model = match role_query.await {
         Ok(role_query) => { role_query.unwrap().into_active_model() },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "Role not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "Role not found")).to_http_response()
         }
     };
 
@@ -149,12 +152,11 @@ pub async fn update_role(
                 value: model.value.clone()
             };
 
-            let response = api_response::generate_response(200, role_data);
-            api_response::ApiResponse::new(200, serde_json::to_string(&response).unwrap())
+            api_response::ApiResponse::ok(role_data).to_http_response()
         },
         Err(e) => {
-            let response = api_response::generate_response(400, e.to_string());
-            api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap())
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, &e.to_string())).to_http_response();
         }
     }
 }
@@ -168,18 +170,18 @@ pub async fn delete_role(
     let role = match role_query.await {
         Ok(role_query) => { role_query.unwrap().into_active_model() },
         Err(_) => {
-            return api_response::ApiResponse::new(400, serde_json::to_string(&api_response::generate_response(400, "Role not found")).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "Role not found")).to_http_response();
         }
     };
 
     match role.delete(&app_state.db).await {
-        Ok(_) => {
-            let response = api_response::generate_response(200, "Role deleted");
-            api_response::ApiResponse::new(200, serde_json::to_string(&response).unwrap())
-        },
+        Ok(role) => { role},
         Err(e) => {
-            let response = api_response::generate_response(400, e.to_string());
-            api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap())
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, &e.to_string())).to_http_response();
         }
-    }
+    };
+
+    return api_response::ApiResponse::ok("Role deleted successfully").to_http_response();
 }

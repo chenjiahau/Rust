@@ -16,42 +16,43 @@ async fn register(
     let data = match data {
         Ok(json) => {
             if json.validate().is_err() {
-                let response = api_response::generate_response(400, "Invalid input");
-                return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+                return api_response::ApiResponse
+                    ::error(api_response::DefaultErrorResponse::new(400, "Invalid input")).to_http_response();
             }
 
             json.into_inner()
         },
         Err(_) => {
-            let response = api_response::generate_response(400, "Invalid input");
-            return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "Invalid input")).to_http_response();
         }
     };
 
-    let user = entity::users::ActiveModel {
-        id: Set(Uuid::new_v4()),
-        name: Set(data.name.clone()),
-        email: Set(data.email.clone()),
-        password: Set(digest(&data.password)), // Hash the password
-        is_active: Set(true),
-        ..Default::default()
-    };
-
-    let user = match user.insert(&app_state.db).await {
-        Ok(user) => { user},
+    let new_user = entity::users::ActiveModel {
+            id: Set(Uuid::new_v4()),
+            name: Set(data.name.clone()),
+            email: Set(data.email.clone()),
+            password: Set(digest(&data.password)), // Hash the password
+            is_active: Set(true),
+            ..Default::default()
+        }
+        .insert(&app_state.db);
+    
+    let new_user = match new_user.await {
+        Ok(user) => { user },
         Err(e) => {
-            let response = api_response::generate_response(400, e.to_string());
-            return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, &e.to_string())).to_http_response();
         }
     };
 
     let user_data = register_model::RegisterModel {
-        name: user.name.clone(),
-        email: user.email.clone(),
+        name: new_user.name.clone(),
+        email: new_user.email.clone(),
     };
 
-    let response = api_response::generate_response(200, user_data);
-    api_response::ApiResponse::new(200, serde_json::to_string(&response).unwrap())
+    api_response::ApiResponse
+        ::ok(api_response::generate_response(201, "User created", Some(user_data))).to_http_response()
 }
 
 #[post("/login")]
@@ -62,19 +63,19 @@ async fn login(
     let data = match data {
         Ok(json) => {
             if json.validate().is_err() {
-                let response = api_response::generate_response(400, "Invalid input");
-                return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+                return api_response::ApiResponse
+                    ::error(api_response::DefaultErrorResponse::new(400, "Invalid input")).to_http_response();
             }
 
             json.into_inner()
         },
         Err(_) => {
-            let response = api_response::generate_response(400, "Invalid input");
-            return api_response::ApiResponse::new(400, serde_json::to_string(&response).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "Invalid input")).to_http_response();
         }
     };
 
-    let user = entity::users::Entity::find()
+    let exist_user = entity::users::Entity::find()
         .filter(
             Condition::all()
                 .add(entity::users::Column::Email.eq(&data.email))
@@ -82,29 +83,30 @@ async fn login(
                 .add(entity::users::Column::IsActive.eq(true))
         );
 
-    let user = match user.one(&app_state.db).await {
-        Ok(user) => { user},
+    let exist_user = match exist_user.one(&app_state.db).await {
+        Ok(user) => {
+            if user.is_none() {
+                return api_response::ApiResponse
+                    ::error(api_response::DefaultErrorResponse::new(400, "User not found")).to_http_response();
+            }
+
+            user.unwrap()
+        },
         Err(_) => {
-            let response = api_response::generate_response(404, "User not found");
-            return api_response::ApiResponse::new(404, serde_json::to_string(&response).unwrap());
+            return api_response::ApiResponse
+                ::error(api_response::DefaultErrorResponse::new(400, "User not found")).to_http_response();
         }
     };
 
-    if user.is_none() {
-        let response = api_response::generate_response(404, "User not found");
-        return api_response::ApiResponse::new(404, serde_json::to_string(&response).unwrap());
-    }
-
     let mut login_data = login_model::LoginModel {
-        id: user.as_ref().unwrap().id,
-        name: user.as_ref().unwrap().name.clone(),
-        email: user.as_ref().unwrap().email.clone(),
+        id: exist_user.id,
+        name: exist_user.name.clone(),
+        email: exist_user.email.clone(),
         token: "".to_string(),
     };
 
     let token = encode_jwt(login_data.id, login_data.email.clone()).unwrap();
     login_data.token = token;
 
-    let response = api_response::generate_response(200, login_data);
-    api_response::ApiResponse::new(200, serde_json::to_string(&response).unwrap())
+    api_response::ApiResponse::ok(login_data).to_http_response()
 }

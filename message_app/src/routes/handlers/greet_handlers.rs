@@ -9,7 +9,7 @@ async fn greet(app_state: web::Data::<AppState>) -> impl Responder {
     let res = app_state.db
     .query_all(Statement::from_string(sea_orm::DatabaseBackend::Postgres, "SELECT * FROM user")).await.unwrap();
 
-    api_response::ApiResponse::new(200, "Hello, World!".to_string())
+    api_response::ApiResponse::ok("data").to_http_response()
 }
 
 #[derive(Serialize)]
@@ -21,5 +21,5 @@ struct GreetData {
 #[get("/message")]
 async fn greet_message() -> impl Responder {
     let greet_data = GreetData { message: "Hello, World!".to_string() };
-    api_response::ApiResponse::new(200, serde_json::to_string(&greet_data).unwrap())
+    api_response::ApiResponse::ok(greet_data).to_http_response()
 }
