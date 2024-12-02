@@ -7,8 +7,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         web::scope("/api")
             .service(
                 web::scope("/unauth")
-                    .service(handlers::uauth_handlers::register)
-                    .service(handlers::uauth_handlers::login)
+                    .service(handlers::unauth_handlers::register)
+                    .service(handlers::unauth_handlers::login)
             )
             .service(
                 web::scope("/auth")

@@ -8,7 +8,7 @@ pub struct RegisterRequestModel {
     #[validate (email)]
     pub email: String,
     #[validate (length(min = 8, max = 32))]
-    pub password: String
+    pub password: String,
 }
 
 #[derive(Serialize)]
