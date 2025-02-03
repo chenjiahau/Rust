@@ -1,4 +1,6 @@
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+mod utils;
+
+use actix_web::{get, middleware::Logger, App, HttpResponse, HttpServer, Responder};
 
 #[get("/")]
 async fn greet() -> impl Responder {
@@ -7,11 +9,24 @@ async fn greet() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    if std::env::var("RUST_LOG").is_err() {
+        std::env::set_var("RUST_LOG", "actix_web=info");
+    }
+
+    // Initialize the logger
+    env_logger::init();
+
+    // Load the environment variables
+    dotenv::dotenv().ok();
+    let address = (utils::constants::ADDRESS).clone();
+    let port: u16 = (utils::constants::PORT).clone();
+
     HttpServer::new(|| {
         App::new()
-            .service(greet) // register the greet service
+            .wrap(Logger::default())
+            .service(greet)
     })
-    .bind(("127.0.0.1", 8080))? // bind the server to the address and port
+    .bind((address, port))?
     .run()
     .await
 }
