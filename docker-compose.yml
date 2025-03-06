@@ -1,0 +1,16 @@
+services:
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: rust-web-db
+    environment:
+      POSTGRES_DB: rust-web
+      POSTGRES_USER: rust-web
+      POSTGRES_PASSWORD: rust-web
+    ports:
+      - "5432:5432"
+    restart: always
+
+volumes:
+  postgres_data:
