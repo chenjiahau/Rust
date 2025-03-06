@@ -1,11 +1,5 @@
 use actix_web::HttpResponse;
-
-// Enum to define the HTTP status code
-pub enum HttpState {
-    Ok = 200,
-    Error = 500,
-    NotFound = 404,
-}
+use httpstatus::StatusCode;
 
 // Struct to define the response format
 #[derive(serde::Serialize)]
@@ -23,17 +17,17 @@ pub struct ResponseDataFormat<T> {
 }
 
 // Function to return the response
-pub fn response(status: HttpState, message: &str) -> HttpResponse {
+pub fn response(status: StatusCode, message: &str) -> HttpResponse {
     HttpResponse::Ok().json(ResponseFormat {
-        status: status as u16,
+        status: status.as_u16(),
         message: message.to_string()
     })
 }
 
 // Function to return the response with data
-pub fn response_with_data<T: serde::Serialize>(status: HttpState, message: &str, data: Option<T>) -> HttpResponse {
+pub fn response_with_data<T: serde::Serialize>(status: StatusCode, message: &str, data: Option<T>) -> HttpResponse {
     HttpResponse::Ok().json(ResponseDataFormat {
-        status: status as u16,
+        status: status.as_u16(),
         message: message.to_string(),
         data
     })

@@ -3,11 +3,13 @@ mod utils;
 use std::collections::HashMap;
 
 use actix_web::{get, middleware::Logger, App, HttpServer, Responder};
-use utils::api_response::{HttpState, response, response_with_data};
+use httpstatus::StatusCode;
+
+use utils::api_response::{response, response_with_data};
 
 #[get("/greet")]
 async fn greet() -> impl Responder {
-    response(HttpState::Ok, "Hello, World!")
+    response(StatusCode::Ok, "Hello, World!")
 }
 
 #[get("/version")]
@@ -16,8 +18,8 @@ async fn version() -> impl Responder {
     data.insert("app", "Rust Actix Web");
     data.insert("version", "1.0.0");
 
-    // response_with_data(HttpState::Ok, "Success", Some({}))
-    response_with_data(HttpState::Ok, "Success", Some(data))
+    // response_with_data(StatusCode::Ok, "Success", Some({}))
+    response_with_data(StatusCode::Ok, "Success", Some(data))
 }
 
 #[actix_web::main]
