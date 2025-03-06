@@ -32,3 +32,27 @@ pub fn response_with_data<T: serde::Serialize>(status: StatusCode, message: &str
         data
     })
 }
+
+// Function to return the error response
+pub fn response_error(status: StatusCode, message: &str) -> HttpResponse {
+    HttpResponse::InternalServerError().json(ResponseFormat {
+        status: status.as_u16(),
+        message: message.to_string()
+    })
+}
+
+// Function to return the not found response
+pub fn response_not_found(status: StatusCode, message: &str) -> HttpResponse {
+    HttpResponse::NotFound().json(ResponseFormat {
+        status: status.as_u16(),
+        message: message.to_string()
+    })
+}
+
+// Function to return the bad request response
+pub fn response_bad_request(status: StatusCode, message: &str) -> HttpResponse {
+    HttpResponse::BadRequest().json(ResponseFormat {
+        status: status.as_u16(),
+        message: message.to_string()
+    })
+}
