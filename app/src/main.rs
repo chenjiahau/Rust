@@ -2,7 +2,7 @@ mod utils;
 mod handlers;
 mod routes;
 
-use actix_web::{middleware::Logger, App, HttpServer};
+use actix_web::{web, middleware::Logger, App, HttpServer};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -18,9 +18,16 @@ async fn main() -> std::io::Result<()> {
     let address = (utils::constants::ADDRESS).clone();
     let port: u16 = (utils::constants::PORT).clone();
 
+    // Initialize the database connection
+    let db = utils::db_connection::establish_connection(utils::constants::DATABASE_URL.to_string()).await;
+
+    // Create the application state
+    let app_state = utils::app_state::AppState { db };
+
     // Start the HTTP server
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         App::new()
+            .app_data(web::Data::new(app_state.clone()))
             .wrap(Logger::default())
             .configure(routes::basic_routes::config)
     })
