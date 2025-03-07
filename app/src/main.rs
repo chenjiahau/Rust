@@ -1,6 +1,7 @@
 mod utils;
 mod handlers;
 mod routes;
+mod models;
 
 use actix_web::{web, middleware::Logger, App, HttpServer};
 
@@ -30,6 +31,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(app_state.clone()))
             .wrap(Logger::default())
             .configure(routes::basic_routes::config)
+            .configure(routes::unauth_routes::config)
     })
     .bind((address, port))?
     .run()
