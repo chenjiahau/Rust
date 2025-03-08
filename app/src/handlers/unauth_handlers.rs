@@ -1,6 +1,6 @@
 use actix_web::{post, web, Responder};
 use httpstatus::StatusCode;
-use sea_orm::{Set, ActiveModelTrait};
+use sea_orm::{Set, ActiveModelTrait, EntityTrait, QueryFilter, Condition, ColumnTrait};
 use validator::Validate;
 use sha256::digest;
 use uuid::Uuid;
@@ -50,3 +50,38 @@ async fn signup(
     response_with_data(StatusCode::Ok, "Success", Some(register_model))
 }
 
+#[post("/signin")]
+async fn signin(
+    app_state: web::Data::<AppState>,
+    data: web::Json<unauth_models::SigninRequestModel>,
+) -> impl Responder {
+    let json_data = data.into_inner();
+
+    if json_data.validate().is_err() {
+        return response_bad_request(StatusCode::BadRequest, "Invalid input");
+    }
+
+    let option_user = entity::users::Entity::find()
+        .filter(
+            Condition::all()
+                .add(entity::users::Column::Email.eq(&json_data.email))
+                .add(entity::users::Column::Password.eq(digest(&json_data.password)))
+                .add(entity::users::Column::IsActive.eq(true))
+        )
+        .one(&app_state.db)
+        .await
+        .unwrap();
+
+    if option_user.is_none() {
+        return response_bad_request(StatusCode::BadRequest, "Invalid email or password");
+    }
+
+    let user = option_user.unwrap();
+    let response = unauth_models::SigninResponseModel {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+    };
+
+    response_with_data(StatusCode::Ok, "Success", Some(response))
+}

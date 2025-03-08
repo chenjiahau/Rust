@@ -1,5 +1,6 @@
 use serde::{Serialize, Deserialize};
 use validator::Validate;
+use uuid::Uuid;
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct SignupRequestModel {
@@ -13,6 +14,21 @@ pub struct SignupRequestModel {
 
 #[derive(Debug, Serialize)]
 pub struct SignupResponseModel {
+    pub name: String,
+    pub email: String,
+}
+
+#[derive(Deserialize, Validate)]
+pub struct SigninRequestModel {
+    #[validate(email)]
+    pub email: String,
+    #[validate(length(min = 8, max = 32))]
+    pub password: String,
+}
+
+#[derive(Serialize)]
+pub struct SigninResponseModel {
+    pub id: Uuid,
     pub name: String,
     pub email: String,
 }
