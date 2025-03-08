@@ -1,5 +1,5 @@
 use chrono::{Duration, Utc};
-use jsonwebtoken::{encode, Header, EncodingKey};
+use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, TokenData, Validation};
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
@@ -44,4 +44,15 @@ pub fn encode_jwt(id: Uuid, email: String) -> Result<TokenModel, jsonwebtoken::e
     };
 
     Ok(token_model)
+}
+
+pub fn decode_jwt(jwt: String) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
+    let secret = (*constants::SECRET_KEY).clone();
+    let claim_data: Result<TokenData<Claims>, jsonwebtoken::errors::Error> = decode(
+        &jwt,
+        &DecodingKey::from_secret(secret.as_ref()),
+        &Validation::default(),
+    );
+
+    claim_data
 }

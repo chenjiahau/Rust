@@ -26,3 +26,4 @@ uuid = { version = "1.11.0", features = ["v4"] }
 sha256 = "1.6.0"
 chrono = "0.4.40"
 jsonwebtoken = "9.3.1"
+actix-web-lab = "0.23.0"
