@@ -18,7 +18,7 @@ pub struct SignupResponseModel {
     pub email: String,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct SigninRequestModel {
     #[validate(email)]
     pub email: String,
@@ -26,9 +26,19 @@ pub struct SigninRequestModel {
     pub password: String,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Clone, Serialize)]
+pub struct TokenModel {
+    pub token: String,
+    #[serde(rename = "expirationTime")]
+    pub expiration_time: usize,
+    #[serde(rename = "startTime")]
+    pub start_time: usize,
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct SigninResponseModel {
     pub id: Uuid,
     pub name: String,
     pub email: String,
+    pub token: Option<TokenModel>,
 }

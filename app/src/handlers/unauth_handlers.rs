@@ -77,11 +77,15 @@ async fn signin(
     }
 
     let user = option_user.unwrap();
-    let response = unauth_models::SigninResponseModel {
+    let mut response = unauth_models::SigninResponseModel {
         id: user.id,
         name: user.name,
         email: user.email,
+        token: None,
     };
+
+    let token = crate::utils::jwt_token::encode_jwt(response.id, response.email.clone()).unwrap();
+    response.token = Some(token);
 
     response_with_data(StatusCode::Ok, "Success", Some(response))
 }
