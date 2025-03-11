@@ -33,6 +33,7 @@ async fn main() -> std::io::Result<()> {
             .configure(routes::basic_routes::config)
             .configure(routes::unauth_routes::config)
             .configure(routes::user_routes::config)
+            .configure(routes::message_routes::config)
     })
     .bind((address, port))?
     .run()
