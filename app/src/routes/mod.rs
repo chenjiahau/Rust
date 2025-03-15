@@ -4,3 +4,4 @@ pub mod basic_routes;
 pub mod unauth_routes;
 pub mod user_routes;
 pub mod message_routes;
+pub mod message_score_routes;

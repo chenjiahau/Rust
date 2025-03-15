@@ -2,6 +2,7 @@ pub use sea_orm_migration::prelude::*;
 
 mod m20250307_030859_create_user_table;
 mod m20250311_060655_create_messages_table;
+mod m20250315_024300_create_message_scores_table;
 
 pub struct Migrator;
 
@@ -11,6 +12,7 @@ impl MigratorTrait for Migrator {
         vec![
             Box::new(m20250307_030859_create_user_table::Migration),
             Box::new(m20250311_060655_create_messages_table::Migration),
+            Box::new(m20250315_024300_create_message_scores_table::Migration),
         ]
     }
 }

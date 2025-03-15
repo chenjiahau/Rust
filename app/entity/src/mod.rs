@@ -2,5 +2,6 @@
 
 pub mod prelude;
 
+pub mod message_scores;
 pub mod messages;
 pub mod users;
