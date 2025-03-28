@@ -21,10 +21,14 @@ async fn main() -> std::io::Result<()> {
     let address = (utils::constants::ADDRESS).clone();
     let port: u16 = (utils::constants::PORT).clone();
 
+    // Initialize the database connection
+    let db = utils::db_connection::establish_connection(utils::constants::DATABASE_URL.to_string()).await;
+
     // Initialize the app state
     let app_state = utils::app_state::AppState {
         name,
         version,
+        db,
     };
 
     // Start the server

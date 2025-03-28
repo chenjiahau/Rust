@@ -1,0 +1,16 @@
+services:
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: accounting
+    environment:
+      POSTGRES_DB: accounting
+      POSTGRES_USER: accounting
+      POSTGRES_PASSWORD: accounting
+    ports:
+      - "5433:5432"
+    restart: always
+
+volumes:
+  postgres_data:
