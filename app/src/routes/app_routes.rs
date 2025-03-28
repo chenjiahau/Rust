@@ -9,5 +9,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(app_handlers::bad_request)
             .service(app_handlers::not_found)
             .service(app_handlers::internal_server_error)
+            .service(app_handlers::users)
   );
 }
