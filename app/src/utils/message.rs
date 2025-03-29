@@ -5,6 +5,7 @@ pub fn get_common_messages() -> HashMap<&'static i32, &'static str> {
 
   messages.insert(&200, "Success");
   messages.insert(&400, "Bad Request");
+  messages.insert(&401, "Unauthorized");
   messages.insert(&404, "Not Found");
   messages.insert(&500, "Internal Server Error");
 

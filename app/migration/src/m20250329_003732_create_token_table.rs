@@ -25,6 +25,11 @@ impl MigrationTrait for Migration {
                             .unique_key(),
                     )
                     .col(
+                        ColumnDef::new(Tokens::Email)
+                            .string_len(128)
+                            .not_null(),
+                    )
+                    .col(
                         ColumnDef::new(Tokens::StartTime)
                             .big_integer()
                             .not_null(),
@@ -57,6 +62,7 @@ enum Tokens {
     Table,
     Id,
     Token,
+    Email,
     StartTime,
     ExpirationTime,
     CreatedAt,

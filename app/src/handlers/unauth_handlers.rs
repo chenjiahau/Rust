@@ -80,7 +80,7 @@ async fn signin(
     let mut res = unauth_models::SigninResponseModel {
         id: entity.id,
         name: entity.name,
-        email: entity.email,
+        email: entity.email.clone(),
         token: None,
         registered_at: entity.created_at.to_string(),
     };
@@ -91,6 +91,7 @@ async fn signin(
     // Insert token into the database
     let result = entity::tokens::ActiveModel {
         token: Set(token.token),
+        email: Set(entity.email.clone()),
         start_time: Set(token.start_time as i64),
         expiration_time: Set(token.expiration_time as i64),
         ..Default::default()
