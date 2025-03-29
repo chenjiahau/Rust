@@ -7,6 +7,8 @@ lazy_static! {
     pub static ref ADDRESS: String = set_address();
     pub static ref PORT: u16 = set_port();
     pub static ref DATABASE_URL: String = set_database_url();
+    pub static ref TOKEN_EXPIRATION_TIME: i64 = set_token_expiration_time();
+    pub static ref SECRET_KEY: String = set_secret_key();
 }
 
 fn set_name() -> String {
@@ -27,4 +29,15 @@ fn set_port() -> u16 {
 
 fn set_database_url() -> String {
     env::var("DATABASE_URL").unwrap().to_string()
+}
+
+fn set_token_expiration_time() -> i64 {
+    env::var("TOKEN_EXPIRATION_TIME")
+        .unwrap()
+        .parse()
+        .unwrap()
+}
+
+fn set_secret_key() -> String {
+    env::var("SECRET_KEY").unwrap().to_string()
 }

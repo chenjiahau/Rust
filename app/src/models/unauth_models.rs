@@ -1,5 +1,15 @@
 use serde::{Serialize, Deserialize};
 use validator::Validate;
+use uuid::Uuid;
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TokenModel {
+    pub token: String,
+    #[serde(rename = "expirationTime")]
+    pub expiration_time: usize,
+    #[serde(rename = "startTime")]
+    pub start_time: usize,
+}
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct SignupRequestModel {
@@ -15,4 +25,21 @@ pub struct SignupRequestModel {
 pub struct SignupResponseModel {
     pub name: String,
     pub email: String,
+}
+
+#[derive(Deserialize, Validate)]
+pub struct SigninRequestModel {
+    #[validate(email)]
+    pub email: String,
+    #[validate(length(min = 8, max = 32))]
+    pub password: String,
+}
+
+#[derive(Serialize)]
+pub struct SigninResponseModel {
+    pub id: Uuid,
+    pub name: String,
+    pub email: String,
+    pub token: Option<TokenModel>,
+    pub registered_at: String,
 }
