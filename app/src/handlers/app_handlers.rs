@@ -1,7 +1,6 @@
 use actix_web::{web, get, Responder};
 use httpstatus::StatusCode;
 use serde::Deserialize;
-use sea_orm::EntityTrait;
 
 use crate::utils::app_state::AppState;
 use crate::utils::api_response::response;
@@ -68,26 +67,4 @@ async fn internal_server_error(query: web::Query<TextQuery>) -> impl Responder {
             response::<Option<String>>(StatusCode::InternalServerError, None, None)
         }
     }
-}
-
-// TODO: remove this endpoint in production
-#[get("/users")]
-async fn users(app_state: web::Data::<AppState>) -> impl Responder {
-    let model_list = entity::users::Entity::find()
-        .all(&app_state.db)
-        .await
-        .unwrap();
-
-    let user_list = model_list.into_iter()
-        .map(|user| {
-            app_models::UserResponseModel {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                created_at: user.created_at.to_string(),
-            }
-        })
-        .collect::<Vec<_>>();
-
-    response(StatusCode::Ok, None, Some(user_list))
 }

@@ -37,6 +37,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(app_state.clone()))
             .wrap(Logger::default())
             .configure(routes::app_routes::config)
+            .configure(routes::unauth_routes::config)
     })
     .bind((address, port))?
     .run()

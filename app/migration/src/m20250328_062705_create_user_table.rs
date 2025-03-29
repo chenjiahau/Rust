@@ -13,9 +13,8 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(Users::Id)
-                            .big_integer()
+                            .uuid()
                             .not_null()
-                            .auto_increment()
                             .primary_key(),
                     )
                     .col(
@@ -32,7 +31,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(
                         ColumnDef::new(Users::Password)
-                            .string_len(32)
+                            .string_len(256)
                             .not_null(),
                     )
                     .col(
@@ -48,7 +47,6 @@ impl MigrationTrait for Migration {
                             .default(Expr::current_timestamp()),
                     )
                     .check(Expr::cust(r#"char_length(name) >= 8 AND char_length(name) <= 32"#))
-                    .check(Expr::cust(r#"char_length(password) >= 8 AND char_length(password) <= 32"#))
                     .to_owned(),
             )
             .await
