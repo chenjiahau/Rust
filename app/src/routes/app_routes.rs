@@ -3,7 +3,7 @@ use crate::handlers::app_handlers;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/app")
+        web::scope("/api/app")
             .service(app_handlers::app)
             .service(app_handlers::index)
             .service(app_handlers::bad_request)

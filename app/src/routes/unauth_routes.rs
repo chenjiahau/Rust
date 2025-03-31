@@ -3,7 +3,7 @@ use crate::handlers;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/unauth")
+        web::scope("/api/unauth")
             .service(handlers::unauth_handlers::signup)
             .service(handlers::unauth_handlers::signin)
     );
