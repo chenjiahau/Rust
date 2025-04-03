@@ -1,4 +1,4 @@
-use actix_web::HttpResponse;
+use actix_web::{HttpMessage, HttpResponse};
 use httpstatus::StatusCode;
 
 use crate::utils::message;
@@ -70,4 +70,14 @@ pub fn response<T: serde::Serialize>(status: StatusCode, message: Option<String>
     }
 
     response_not_found(status, message, data)
+}
+
+pub fn get_user_id_from_request(req: &actix_web::HttpRequest) -> Option<String> {
+    let extensions = req.extensions();
+    let user_id = extensions.get::<String>();
+    if user_id.is_none() {
+        return None;
+    }
+
+    Some(user_id.unwrap().to_string())
 }

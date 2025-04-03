@@ -1,4 +1,4 @@
-use actix_web::{web, error, Error};
+use actix_web::{error, web, Error, HttpMessage};
 use actix_web::body::MessageBody;
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::middleware::Next;
@@ -67,8 +67,7 @@ pub async fn check_auth_middleware (
         return Err(return_unauthorized());
     }
 
+    // Pass the user id to handlers
+    req.extensions_mut().insert::<String>(_claim.claims.id.to_string());
     next.call(req).await
-        .map_err(| _err| {
-            error::ErrorUnauthorized("Unauthorized")
-        })
 }
