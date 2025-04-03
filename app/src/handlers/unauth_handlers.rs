@@ -24,8 +24,10 @@ async fn signup(
         return response(StatusCode::BadRequest, None, Some(error));
     }
 
-    let result = entity::users::ActiveModel {
-            id: Set(Uuid::new_v4()),
+    // Insert the user into the users table
+    let user_id = Uuid::new_v4();
+    let user_result = entity::users::ActiveModel {
+            id: Set(user_id.clone()),
             name: Set(req.name.unwrap()),
             email: Set(req.email.unwrap()),
             password: Set(digest(req.password.unwrap())),
@@ -35,12 +37,25 @@ async fn signup(
         .insert(&app_state.db)
         .await;
 
-    if result.is_err() {
-        let error = result.err().unwrap().to_string();
+    if user_result.is_err() {
+        let error = user_result.err().unwrap().to_string();
         return response(StatusCode::InternalServerError, None, Some(error));
     }
 
-    let entity = result.unwrap();
+    // Insert the user to settings table
+    let setting_result = entity::settings::ActiveModel {
+        user_id: Set(user_id.clone()),
+        ..Default::default()
+    }
+    .insert(&app_state.db)
+    .await;
+
+    if setting_result.is_err() {
+        let error = setting_result.err().unwrap().to_string();
+        return response(StatusCode::InternalServerError, None, Some(error));
+    }
+
+    let entity = user_result.unwrap();
     let res = unauth_models::SignupResponseModel {
         name: entity.name.clone(),
         email: entity.email.clone(),
