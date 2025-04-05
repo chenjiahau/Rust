@@ -2,6 +2,7 @@
 
 pub mod prelude;
 
+pub mod places;
 pub mod settings;
 pub mod tokens;
 pub mod users;
