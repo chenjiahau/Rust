@@ -4,8 +4,10 @@ use sea_orm::{Set, ActiveModelTrait, EntityTrait, QueryFilter, Condition, Column
 use validator::Validate;
 use sha256::digest;
 use uuid::Uuid;
+use std::fs::File;
+use std::io::BufReader;
 
-use crate::models::unauth_models;
+use crate::models::{unauth_models, spending_category_models};
 use crate::utils::app_state::AppState;
 use crate::utils::api_response::response;
 
@@ -53,6 +55,42 @@ async fn signup(
     if setting_result.is_err() {
         let error = setting_result.err().unwrap().to_string();
         return response(StatusCode::InternalServerError, None, Some(error));
+    }
+
+    let spending_category_data = match File::open("data/spending_categories.json") {
+        Ok(file) => file,
+        Err(err) => {
+            let error = format!("Failed to open spending categories file: {}", err);
+            return response(StatusCode::InternalServerError, None, Some(error));
+        }
+    };
+    let reader = BufReader::new(spending_category_data);
+    let mut spending_categories: Vec<spending_category_models::SpendingCategoryModel> = match serde_json::from_reader(reader) {
+        Ok(categories) => categories,
+        Err(err) => {
+            let error = format!("Failed to parse spending categories: {}", err);
+            return response(StatusCode::InternalServerError, None, Some(error));
+        }
+    };
+
+    // Insert the default spending categories into the spending_categories table
+    for category in &mut spending_categories {
+        category.user_id = Some(user_id.clone());
+        let spending_category_result = entity::spending_categories::ActiveModel {
+            user_id: Set(user_id.clone()),
+            name: Set(category.name.clone()),
+            order: Set(category.order),
+            budget: Set(category.budget),
+            is_default: Set(true),
+            ..Default::default()
+        }
+        .insert(&app_state.db)
+        .await;
+
+        if spending_category_result.is_err() {
+            let error = spending_category_result.err().unwrap().to_string();
+            return response(StatusCode::InternalServerError, None, Some(error));
+        }
     }
 
     let entity = user_result.unwrap();

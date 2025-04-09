@@ -41,6 +41,7 @@ async fn main() -> std::io::Result<()> {
             .configure(routes::dashboard_routes::config)
             .configure(routes::setting_routes::config)
             .configure(routes::place_routes::config)
+            .configure(routes::spending_category_routes::config)
     })
     .bind((address, port))?
     .run()

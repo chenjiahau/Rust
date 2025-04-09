@@ -2,5 +2,6 @@
 
 pub use super::places::Entity as Places;
 pub use super::settings::Entity as Settings;
+pub use super::spending_categories::Entity as SpendingCategories;
 pub use super::tokens::Entity as Tokens;
 pub use super::users::Entity as Users;
