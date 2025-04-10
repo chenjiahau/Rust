@@ -80,7 +80,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum SpendingCategories {
+pub enum SpendingCategories {
     Table,
     Id,
     UserId,

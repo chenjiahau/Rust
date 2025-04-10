@@ -1,9 +1,11 @@
 use serde::{Serialize, Deserialize};
+use uuid::Uuid;
 use validator::Validate;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlaceModel {
     pub id: i64,
+    pub user_id: Option<Uuid>,
     pub name: String,
     pub created_at: String,
     pub updated_at: String,
