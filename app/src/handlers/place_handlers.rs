@@ -43,6 +43,7 @@ async fn get_places(
         places: models.iter().map(|model| {
             place_models::PlaceModel {
                 id: model.id,
+                user_id: Some(Uuid::parse_str(user_id.as_str()).unwrap()),
                 name: model.name.clone(),
                 created_at: model.created_at.to_string(),
                 updated_at: model.updated_at.to_string(),
@@ -99,6 +100,7 @@ async fn create_place(
     let model = result.unwrap();
     let res = place_models::PlaceModel {
         id: model.id,
+        user_id: Some(Uuid::parse_str(user_id.as_str()).unwrap()),
         name: model.name.clone(),
         created_at: model.created_at.to_string(),
         updated_at: model.updated_at.to_string(),
@@ -168,6 +170,7 @@ async fn update_place(
     let model = result.unwrap();
     let res = place_models::PlaceModel {
         id: model.id,
+        user_id: Some(Uuid::parse_str(user_id.as_str()).unwrap()),
         name: model.name.clone(),
         created_at: model.created_at.to_string(),
         updated_at: model.updated_at.to_string(),
