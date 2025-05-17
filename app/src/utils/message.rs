@@ -3,6 +3,9 @@ use std::collections::HashMap;
 pub fn get_common_messages() -> HashMap<&'static i32, &'static str> {
   let mut messages = HashMap::new();
 
+  /*
+   * HTTP status codes
+   */
   messages.insert(&200, "Success");
   messages.insert(&201, "Created");
   messages.insert(&400, "Bad Request");
@@ -12,5 +15,132 @@ pub fn get_common_messages() -> HashMap<&'static i32, &'static str> {
   messages.insert(&409, "Conflict");
   messages.insert(&500, "Internal Server Error");
 
+
   messages
+}
+
+pub enum SuccessMessage {
+  // Common messages
+  Success,
+  CreatedSuccessfully,
+}
+
+impl SuccessMessage {
+  pub fn to_string(&self) -> String {
+    match self {
+      // Common messages
+      SuccessMessage::Success => "Success".to_string(),
+      SuccessMessage::CreatedSuccessfully => "Created Successfully".to_string(),
+    }
+  }
+
+  pub fn to_code(&self) -> u16{
+    match self {
+      // Common messages
+      SuccessMessage::Success => 1000,
+      SuccessMessage::CreatedSuccessfully => 1001,
+    }
+  }
+}
+
+pub enum ErrorMessage {
+  // HTTP status codes
+  BadRequest,
+  NotFound,
+  Unauthorized,
+  Forbidden,
+  Conflict,
+  InternalServerError,
+  // Common messages
+  InvalidRequest,
+  SomethingWentWrong,
+  // Unauth messages
+  InvalidEmail,
+  PasswordTooShort,
+  PasswordTooLong,
+  PasswordMismatch,
+  EmailAlreadyRegistered,
+  InvalidCredentials,
+  // Spending category messages
+  SpendingCategoryNotFound,
+  SpendingCategoryInvalidOrder,
+  SpendingCategoryAlreadyExists,
+  SpendingCategoryNotAllowedToDelete,
+  // Place messages
+  PlaceNotFound,
+  PlaceAlreadyExists,
+  // Consumption messages
+  ConsumptionNotFound,
+  // Setting messages
+  SettingNotFound,
+}
+
+impl ErrorMessage {
+  pub fn to_string(&self) -> String {
+    match self {
+      // HTTP status codes
+      ErrorMessage::BadRequest => "Bad Request".to_string(),
+      ErrorMessage::NotFound => "Not Found".to_string(),
+      ErrorMessage::Unauthorized => "Unauthorized".to_string(),
+      ErrorMessage::Forbidden => "Forbidden".to_string(),
+      ErrorMessage::Conflict => "Conflict".to_string(),
+      ErrorMessage::InternalServerError => "Internal Server Error".to_string(),
+      // Common messages
+      ErrorMessage::InvalidRequest => "Invalid Request".to_string(),
+      ErrorMessage::SomethingWentWrong => "Something Went Wrong".to_string(),
+      // Unauth messages
+      ErrorMessage::InvalidEmail => "Invalid Email".to_string(),
+      ErrorMessage::PasswordTooShort => "Password Too Short".to_string(),
+      ErrorMessage::PasswordTooLong => "Password Too Long".to_string(),
+      ErrorMessage::PasswordMismatch => "Password Mismatch".to_string(),
+      ErrorMessage::EmailAlreadyRegistered => "Email Already Registered".to_string(),
+      ErrorMessage::InvalidCredentials => "Invalid Credentials".to_string(),
+      // Spending category messages
+      ErrorMessage::SpendingCategoryNotFound => "Spending Category Not Found".to_string(),
+      ErrorMessage::SpendingCategoryInvalidOrder => "Spending Category Invalid Order".to_string(),
+      ErrorMessage::SpendingCategoryAlreadyExists => "Spending Category Already Exists".to_string(),
+      ErrorMessage::SpendingCategoryNotAllowedToDelete => "Spending Category Not Allowed To Delete".to_string(),
+      // Place messages
+      ErrorMessage::PlaceNotFound => "Place Not Found".to_string(),
+      ErrorMessage::PlaceAlreadyExists => "Place Already Exists".to_string(),
+      // Consumption messages
+      ErrorMessage::ConsumptionNotFound => "Consumption Not Found".to_string(),
+      // Setting messages
+      ErrorMessage::SettingNotFound => "Settings Not Found".to_string(),
+    }
+  }
+
+  pub fn to_code(&self) -> u16{
+    match self {
+      // HTTP status codes
+      ErrorMessage::BadRequest => 400,
+      ErrorMessage::Unauthorized => 401,
+      ErrorMessage::Forbidden => 403,
+      ErrorMessage::NotFound => 404,
+      ErrorMessage::Conflict => 409,
+      ErrorMessage::InternalServerError => 500,
+      // Common messages
+      ErrorMessage::InvalidRequest => 1000,
+      ErrorMessage::SomethingWentWrong => 1001,
+      // Unauth messages
+      ErrorMessage::InvalidEmail => 2000,
+      ErrorMessage::PasswordTooShort => 2001,
+      ErrorMessage::PasswordTooLong => 2002,
+      ErrorMessage::PasswordMismatch => 2003,
+      ErrorMessage::EmailAlreadyRegistered => 2004,
+      ErrorMessage::InvalidCredentials => 2005,
+      // Spending category messages
+      ErrorMessage::SpendingCategoryNotFound => 3000,
+      ErrorMessage::SpendingCategoryInvalidOrder => 3001,
+      ErrorMessage::SpendingCategoryAlreadyExists => 3002,
+      ErrorMessage::SpendingCategoryNotAllowedToDelete => 3003,
+      // Place messages
+      ErrorMessage::PlaceNotFound => 4000,
+      ErrorMessage::PlaceAlreadyExists => 4001,
+      // Consumption messages
+      ErrorMessage::ConsumptionNotFound => 5000,
+      // Setting messages
+      ErrorMessage::SettingNotFound => 6000,
+    }
+  }
 }

@@ -10,6 +10,7 @@ use chrono;
 use crate::models::spending_category_models;
 use crate::utils::app_state::AppState;
 use crate::utils::api_response::{get_user_id_from_request, response};
+use crate::utils::message;
 
 #[derive(Debug, Deserialize)]
 struct IdParam {
@@ -34,7 +35,13 @@ async fn get_spending_categories(
         .await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     // Return the spending categories
@@ -54,7 +61,13 @@ async fn get_spending_categories(
         }).collect(),
     };
 
-    response(StatusCode::Ok, None, Some(res))
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
+    )
 }
 
 #[get("/{id}")]
@@ -77,13 +90,25 @@ async fn get_spending_category(
         .await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     // Return the spending category
     let model = result.unwrap();
     if model.is_none() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     let model = model.unwrap();
@@ -98,7 +123,13 @@ async fn get_spending_category(
         updated_at: Some(model.updated_at.to_string()),
     };
 
-    response(StatusCode::Ok, None, Some(res))
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
+    )
 }
 
 #[post("")]
@@ -115,14 +146,26 @@ async fn create_spending_category(
     req.validate().unwrap();
 
     if req.validate().is_err() {
-        return response::<Option<String>>(StatusCode::BadRequest, None, None);
+        let error_message = message::ErrorMessage::InvalidRequest;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Check order is unique and larger than 8 and less than 99
     let order = req.order;
 
     if order < 8 || order > 99 {
-        return response::<Option<String>>(StatusCode::BadRequest, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryInvalidOrder;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     let result = spending_categories::Entity::find()
@@ -134,12 +177,14 @@ async fn create_spending_category(
         .one(&app_state.db)
         .await;
 
-    if result.is_err() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
-    }
-
     if result.unwrap().is_some() {
-        return response::<Option<String>>(StatusCode::Conflict, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryAlreadyExists;
+        return response(
+            StatusCode::Conflict,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     // Create the spending category
@@ -158,7 +203,13 @@ async fn create_spending_category(
         .await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::InternalServerError, None, None);
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     // Return the spending category
@@ -174,7 +225,13 @@ async fn create_spending_category(
         updated_at: Some(model.updated_at.to_string()),
     };
 
-    response(StatusCode::Created, None, Some(res))
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Created,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
+    )
 }
 
 #[put("/{id}")]
@@ -194,7 +251,13 @@ async fn update_spending_category(
 
     // Check order is unique and larger than 8 and less than 99
     if req.order < 8 || req.order > 99 {
-        return response::<Option<String>>(StatusCode::BadRequest, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryInvalidOrder;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     // Check if the spending category exists
@@ -208,12 +271,24 @@ async fn update_spending_category(
         .await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     let option_model = result.unwrap();
     if option_model.is_none() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     // If it is default category, its order is not allowed to be changed
@@ -234,7 +309,13 @@ async fn update_spending_category(
         .await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::InternalServerError, None, None);
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     // Return the spending category
@@ -250,7 +331,13 @@ async fn update_spending_category(
         updated_at: Some(model.updated_at.to_string()),
     };
 
-    response(StatusCode::Ok, None, Some(res))
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
+    )
 }
 
 #[delete("/{id}")]
@@ -273,18 +360,36 @@ async fn delete_spending_category(
         .await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     let option_model = result.unwrap();
     if option_model.is_none() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     // If it is default, it is not allowed to be deleted
     let model = option_model.unwrap();
     if model.is_default {
-        return response::<Option<String>>(StatusCode::Forbidden, None, None);
+        let error_message = message::ErrorMessage::SpendingCategoryNotAllowedToDelete;
+        return response(
+            StatusCode::Forbidden,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
     // Delete the spending category
@@ -298,9 +403,20 @@ async fn delete_spending_category(
         .await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::InternalServerError, None, None);
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
     }
 
-    // Return the spending category
-    response::<Option<String>>(StatusCode::Ok, None, None)
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Option::<()>::None,
+    )
 }

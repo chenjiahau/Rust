@@ -10,6 +10,7 @@ use std::io::BufReader;
 use crate::models::{unauth_models, spending_category_models};
 use crate::utils::app_state::AppState;
 use crate::utils::api_response::response;
+use crate::utils::message;
 
 #[post("/signup")]
 async fn signup(
@@ -22,8 +23,30 @@ async fn signup(
     || req.email.is_none()
     || req.password.is_none()
     || req.validate().is_err() {
-        let error = req.validate().err().unwrap().to_string();
-        return response(StatusCode::BadRequest, None, Some(error));
+        let error_message = message::ErrorMessage::InvalidRequest;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
+    // Check if the email already exists
+    let existing_user = entity::users::Entity::find()
+        .filter(entity::users::Column::Email.eq(&req.email.clone().unwrap()))
+        .one(&app_state.db)
+        .await
+        .unwrap();
+
+    if !existing_user.is_none() {
+        let error_message = message::ErrorMessage::EmailAlreadyRegistered;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Insert the user into the users table
@@ -39,11 +62,6 @@ async fn signup(
         .insert(&app_state.db)
         .await;
 
-    if user_result.is_err() {
-        let error = user_result.err().unwrap().to_string();
-        return response(StatusCode::InternalServerError, None, Some(error));
-    }
-
     // Insert the user to settings table
     let setting_result = entity::settings::ActiveModel {
         user_id: Set(user_id.clone()),
@@ -53,23 +71,38 @@ async fn signup(
     .await;
 
     if setting_result.is_err() {
-        let error = setting_result.err().unwrap().to_string();
-        return response(StatusCode::InternalServerError, None, Some(error));
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     let spending_category_data = match File::open("data/spending_categories.json") {
         Ok(file) => file,
-        Err(err) => {
-            let error = format!("Failed to open spending categories file: {}", err);
-            return response(StatusCode::InternalServerError, None, Some(error));
+        Err(_) => {
+            let error_message = message::ErrorMessage::InternalServerError;
+            return response(
+                StatusCode::InternalServerError,
+                error_message.to_code(),
+                Some(error_message.to_string()),
+                Option::<()>::None,
+            );
         }
     };
     let reader = BufReader::new(spending_category_data);
     let mut spending_categories: Vec<spending_category_models::SpendingCategoryModel> = match serde_json::from_reader(reader) {
         Ok(categories) => categories,
-        Err(err) => {
-            let error = format!("Failed to parse spending categories: {}", err);
-            return response(StatusCode::InternalServerError, None, Some(error));
+        Err(_) => {
+            let error_message = message::ErrorMessage::InternalServerError;
+            return response(
+                StatusCode::InternalServerError,
+                error_message.to_code(),
+                Some(error_message.to_string()),
+                Option::<()>::None,
+            );
         }
     };
 
@@ -88,8 +121,13 @@ async fn signup(
         .await;
 
         if spending_category_result.is_err() {
-            let error = spending_category_result.err().unwrap().to_string();
-            return response(StatusCode::InternalServerError, None, Some(error));
+            let error_message = message::ErrorMessage::InternalServerError;
+            return response(
+                StatusCode::InternalServerError,
+                error_message.to_code(),
+                Some(error_message.to_string()),
+                Option::<()>::None,
+            );
         }
     }
 
@@ -99,7 +137,8 @@ async fn signup(
         email: entity.email.clone(),
     };
 
-    response(StatusCode::Ok, None, Some(res))
+    let success_message = message::SuccessMessage::Success;
+    response(StatusCode::Ok, success_message.to_code(), Some(success_message.to_string()), Some(res))
 }
 
 #[post("/signin")]
@@ -110,8 +149,13 @@ async fn signin(
     let req = data.into_inner();
 
     if req.validate().is_err() {
-        let error = req.validate().err().unwrap().to_string();
-        return response(StatusCode::BadRequest, None, Some(error));
+        let error_message = message::ErrorMessage::InvalidRequest;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     let result = entity::users::Entity::find()
@@ -126,7 +170,13 @@ async fn signin(
         .unwrap();
 
     if result.is_none() {
-        return response(StatusCode::BadRequest, None, Some("Invalid credentials".to_string()));
+        let error_message = message::ErrorMessage::InvalidCredentials;
+        return response(
+            StatusCode::Unauthorized,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     let entity = result.unwrap();
@@ -153,9 +203,15 @@ async fn signin(
     .await;
 
     if result.is_err() {
-        let error = result.err().unwrap().to_string();
-        return response(StatusCode::InternalServerError, None, Some(error));
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
-    response(StatusCode::Ok, None, Some(res))
+    let success_message = message::SuccessMessage::Success;
+    response(StatusCode::Ok, success_message.to_code(), Some(success_message.to_string()), Some(res))
 }

@@ -8,10 +8,19 @@ use sea_orm::{EntityTrait, QueryFilter, Condition, ColumnTrait};
 use crate::utils::jwt::decode_jwt;
 use crate::utils::api_response::response;
 
+
 fn return_unauthorized() -> Error {
+    let error_message = crate::utils::message::ErrorMessage::Unauthorized;
+    let response = response::<Option<String>>(
+        StatusCode::Unauthorized,
+        error_message.to_code(),
+        Some(error_message.to_string()),
+        None,
+    );
+
     error::InternalError::from_response(
         error::ErrorUnauthorized("Unauthorized"),
-        response::<Option<String>>(StatusCode::Unauthorized, None, None)
+        response,
     ).into()
 }
 

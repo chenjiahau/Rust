@@ -10,6 +10,7 @@ use chrono;
 use crate::models::place_models;
 use crate::utils::app_state::AppState;
 use crate::utils::api_response::{get_user_id_from_request, response};
+use crate::utils::message;
 
 #[derive(Debug, Deserialize)]
 struct IdParam {
@@ -34,7 +35,13 @@ async fn get_places(
         .await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::PlaceNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Return the setting
@@ -51,7 +58,13 @@ async fn get_places(
         }).collect(),
     };
 
-    response(StatusCode::Ok, None, Some(res))
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
+    )
 }
 
 #[post("")]
@@ -64,8 +77,13 @@ async fn create_place(
     let req = data.into_inner();
 
     if req.validate().is_err() {
-        let error = req.validate().err().unwrap().to_string();
-        return response(StatusCode::BadRequest, None, Some(error));
+        let error_message = message::ErrorMessage::InvalidRequest;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Check if the place exist
@@ -80,7 +98,13 @@ async fn create_place(
         .unwrap();
 
     if option_model.is_some() {
-        return response::<Option<String>>(StatusCode::Conflict, None, None);
+        let error_message = message::ErrorMessage::PlaceAlreadyExists;
+        return response(
+            StatusCode::Conflict,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Create the place
@@ -93,7 +117,13 @@ async fn create_place(
     let result = active_model.insert(&app_state.db).await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::InternalServerError, None, None);
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Return the setting
@@ -106,7 +136,13 @@ async fn create_place(
         updated_at: model.updated_at.to_string(),
     };
 
-    response(StatusCode::Created, None, Some(res))
+    let success_message = message::SuccessMessage::CreatedSuccessfully;
+    response(
+        StatusCode::Created,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
+    )
 }
 
 #[put("/{id}")]
@@ -120,8 +156,13 @@ async fn update_place(
     let req = data.into_inner();
 
     if req.validate().is_err() {
-        let error = req.validate().err().unwrap().to_string();
-        return response(StatusCode::BadRequest, None, Some(error));
+        let error_message = message::ErrorMessage::InvalidRequest;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Check if the place exist
@@ -136,7 +177,13 @@ async fn update_place(
         .unwrap();
 
     if option_model.is_none() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::PlaceNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Check if the place name already exist
@@ -152,7 +199,13 @@ async fn update_place(
         .unwrap();
 
     if duplicated_option_model.is_some() {
-        return response::<Option<String>>(StatusCode::Conflict, None, None);
+        let error_message = message::ErrorMessage::PlaceAlreadyExists;
+        return response(
+            StatusCode::Conflict,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Update the place
@@ -163,7 +216,13 @@ async fn update_place(
     let result = active_model.update(&app_state.db).await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::InternalServerError, None, None);
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Return the setting
@@ -176,7 +235,13 @@ async fn update_place(
         updated_at: model.updated_at.to_string(),
     };
 
-    response(StatusCode::Ok, None, Some(res))
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
+    )
 }
 
 #[delete("/{id}")]
@@ -199,7 +264,13 @@ async fn delete_place(
         .unwrap();
 
     if option_model.is_none() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::PlaceNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Delete the place
@@ -213,8 +284,20 @@ async fn delete_place(
         .await;
 
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::InternalServerError, None, None);
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
-    response::<Option<String>>(StatusCode::Ok, None, None)
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Option::<()>::None,
+    )
 }

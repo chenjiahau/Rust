@@ -2,9 +2,10 @@ use actix_web::{web, get, Responder};
 use httpstatus::StatusCode;
 use serde::Deserialize;
 
+use crate::models::app_models;
 use crate::utils::app_state::AppState;
 use crate::utils::api_response::response;
-use crate::models::app_models;
+use crate::utils::message;
 
 #[derive(Debug, Deserialize)]
 struct TextQuery {
@@ -18,17 +19,35 @@ async fn app(app_state: web::Data::<AppState>) -> impl Responder {
         version: app_state.version.clone()
     };
 
-    response(StatusCode::Ok, None, Some(app))
+    let message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        message.to_code(),
+        Some(message.to_string()),
+        Some(app),
+    )
 }
 
 #[get("/")]
 async fn index(query: web::Query<TextQuery>) -> impl Responder {
     match query.data.clone() {
         Some(data) => {
-            response(StatusCode::Ok, None, Some(data))
+            let message = message::SuccessMessage::Success;
+            response(
+                StatusCode::Ok,
+                message.to_code(),
+                Some(message.to_string()),
+                Some(data),
+            )
         },
         None => {
-            response::<Option<String>>(StatusCode::Ok, None, None)
+            let message = message::ErrorMessage::BadRequest;
+            response(
+                StatusCode::BadRequest,
+                message.to_code(),
+                Some(message.to_string()),
+                Option::<()>::None,
+            )
         }
     }
 }
@@ -37,10 +56,22 @@ async fn index(query: web::Query<TextQuery>) -> impl Responder {
 async fn bad_request(query: web::Query<TextQuery>) -> impl Responder {
     match query.data.clone() {
         Some(data) => {
-            response(StatusCode::BadRequest, None, Some(data))
+            let message = message::ErrorMessage::BadRequest;
+            response(
+                StatusCode::BadRequest,
+                message.to_code(),
+                Some(message.to_string()),
+                Some(data),
+            )
         },
         None => {
-            response::<Option<String>>(StatusCode::BadRequest, None, None)
+            let message = message::ErrorMessage::BadRequest;
+            response(
+                StatusCode::BadRequest,
+                message.to_code(),
+                Some(message.to_string()),
+                Option::<()>::None,
+            )
         }
     }
 }
@@ -49,10 +80,22 @@ async fn bad_request(query: web::Query<TextQuery>) -> impl Responder {
 async fn not_found(query: web::Query<TextQuery>) -> impl Responder {
     match query.data.clone() {
         Some(data) => {
-            response(StatusCode::NotFound, None, Some(data))
+            let message = message::ErrorMessage::NotFound;
+            response(
+                StatusCode::NotFound,
+                message.to_code(),
+                Some(message.to_string()),
+                Some(data),
+            )
         },
         None => {
-            response::<Option<String>>(StatusCode::NotFound, None, None)
+            let message = message::ErrorMessage::NotFound;
+            response(
+                StatusCode::NotFound,
+                message.to_code(),
+                Some(message.to_string()),
+                Option::<()>::None,
+            )
         }
     }
 }
@@ -61,10 +104,22 @@ async fn not_found(query: web::Query<TextQuery>) -> impl Responder {
 async fn internal_server_error(query: web::Query<TextQuery>) -> impl Responder {
     match query.data.clone() {
         Some(data) => {
-            response(StatusCode::InternalServerError, None, Some(data))
+            let message = message::ErrorMessage::InternalServerError;
+            response(
+                StatusCode::InternalServerError,
+                message.to_code(),
+                Some(message.to_string()),
+                Some(data),
+            )
         },
         None => {
-            response::<Option<String>>(StatusCode::InternalServerError, None, None)
+            let message = message::ErrorMessage::InternalServerError;
+            response(
+                StatusCode::InternalServerError,
+                message.to_code(),
+                Some(message.to_string()),
+                Option::<()>::None,
+            )
         }
     }
 }

@@ -8,6 +8,7 @@ use chrono;
 use crate::models::setting_models;
 use crate::utils::app_state::AppState;
 use crate::utils::api_response::{get_user_id_from_request, response};
+use crate::utils::message;
 
 #[get("")]
 async fn get_setting(
@@ -27,7 +28,13 @@ async fn get_setting(
         .unwrap();
 
     if option_model.is_none() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::SettingNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Return the setting
@@ -38,7 +45,13 @@ async fn get_setting(
         updated_at: model.updated_at.to_string(),
     };
 
-    response(StatusCode::Ok, None, Some(res))
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
+    )
 }
 
 #[put("")]
@@ -51,8 +64,13 @@ async fn update_setting(
     let req = data.into_inner();
 
     if req.validate().is_err() {
-        let error = req.validate().err().unwrap().to_string();
-        return response(StatusCode::BadRequest, None, Some(error));
+        let error_message = message::ErrorMessage::InvalidRequest;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Check if the setting exist
@@ -66,7 +84,13 @@ async fn update_setting(
         .unwrap();
 
     if option_model.is_none() {
-        return response::<Option<String>>(StatusCode::NotFound, None, None);
+        let error_message = message::ErrorMessage::SettingNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Update the setting
@@ -77,7 +101,13 @@ async fn update_setting(
 
     let result = active_model.update(&app_state.db).await;
     if result.is_err() {
-        return response::<Option<String>>(StatusCode::InternalServerError, None, None);
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
     }
 
     // Return the updated setting
@@ -88,5 +118,11 @@ async fn update_setting(
         updated_at: model.updated_at.to_string(),
     };
 
-    response(StatusCode::Ok, None, Some(res))
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
+    )
 }
