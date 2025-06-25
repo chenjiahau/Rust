@@ -3,6 +3,7 @@ mod handlers;
 mod routes;
 mod models;
 
+use actix_files::Files;
 use actix_web::{web, middleware::Logger, App, HttpServer};
 
 #[actix_web::main]
@@ -20,6 +21,7 @@ async fn main() -> std::io::Result<()> {
     let version = (utils::constants::VERSION).clone();
     let address = (utils::constants::ADDRESS).clone();
     let port: u16 = (utils::constants::PORT).clone();
+    let static_path = (utils::constants::STATIC_PATH).clone();
 
     // Initialize the database connection
     let db = utils::db_connection::establish_connection(utils::constants::DATABASE_URL.to_string()).await;
@@ -36,6 +38,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(app_state.clone()))
             .wrap(Logger::default())
+            .service(Files::new("/static", static_path.clone()).show_files_listing())
             .configure(routes::app_routes::config)
             .configure(routes::unauth_routes::config)
             .configure(routes::user_routes::config)

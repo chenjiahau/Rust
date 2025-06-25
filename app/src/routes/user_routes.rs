@@ -10,5 +10,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(user_handlers::get_user_profile)
             .service(user_handlers::update_user_profile)
             .service(user_handlers::update_user_password)
+            .service(user_handlers::upload_user_avatar)
   );
 }

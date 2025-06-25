@@ -9,6 +9,7 @@ lazy_static! {
     pub static ref DATABASE_URL: String = set_database_url();
     pub static ref TOKEN_EXPIRATION_TIME: i64 = set_token_expiration_time();
     pub static ref SECRET_KEY: String = set_secret_key();
+    pub static ref STATIC_PATH: String = set_static_path();
 }
 
 fn set_name() -> String {
@@ -40,4 +41,8 @@ fn set_token_expiration_time() -> i64 {
 
 fn set_secret_key() -> String {
     env::var("SECRET_KEY").unwrap().to_string()
+}
+
+fn set_static_path() -> String {
+    env::var("STATIC_PATH").unwrap().to_string()
 }

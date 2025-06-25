@@ -64,6 +64,9 @@ pub enum ErrorMessage {
   // User messages
   UserNotFound,
   UserPasswordMismatch,
+  UserAvatarFileSizeLimitExceeded,
+  UserAvatarFileTypeNotAllowed,
+  UserAvatarFileFailedToUpload,
   // Spending category messages
   SpendingCategoryNotFound,
   SpendingCategoryInvalidOrder,
@@ -101,6 +104,9 @@ impl ErrorMessage {
       // User messages
       ErrorMessage::UserNotFound => "User Not Found".to_string(),
       ErrorMessage::UserPasswordMismatch => "User Password Mismatch".to_string(),
+      ErrorMessage::UserAvatarFileSizeLimitExceeded => "User Avatar File Size Limit Exceeded".to_string(),
+      ErrorMessage::UserAvatarFileTypeNotAllowed => "User Avatar File Type Not Allowed".to_string(),
+      ErrorMessage::UserAvatarFileFailedToUpload => "User Avatar File Failed To Upload".to_string(),
       // Spending category messages
       ErrorMessage::SpendingCategoryNotFound => "Spending Category Not Found".to_string(),
       ErrorMessage::SpendingCategoryInvalidOrder => "Spending Category Invalid Order".to_string(),
@@ -138,6 +144,9 @@ impl ErrorMessage {
       // User messages
       ErrorMessage::UserNotFound => 3000,
       ErrorMessage::UserPasswordMismatch => 3001,
+      ErrorMessage::UserAvatarFileSizeLimitExceeded => 3002,
+      ErrorMessage::UserAvatarFileTypeNotAllowed => 3003,
+      ErrorMessage::UserAvatarFileFailedToUpload => 3004,
       // Spending category messages
       ErrorMessage::SpendingCategoryNotFound => 4000,
       ErrorMessage::SpendingCategoryInvalidOrder => 4001,
