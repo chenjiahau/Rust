@@ -4,6 +4,7 @@ use validator::Validate;
 #[derive(Debug, Clone, Serialize)]
 pub struct UserProfileModel {
     pub name: String,
+    pub avatar: Option<String>,
 }
 
 #[derive(Deserialize, Validate)]

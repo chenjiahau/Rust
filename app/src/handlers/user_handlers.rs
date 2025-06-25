@@ -40,6 +40,7 @@ async fn get_user_profile(
     let model = option_model.unwrap();
     let res = user_models::UserProfileModel {
         name: model.name,
+        avatar: model.avatar,
     };
     let success_message = message::SuccessMessage::Success;
   
@@ -93,6 +94,7 @@ async fn update_user_profile(
     let model = result.unwrap();
     let res = user_models::UserProfileModel {
         name: model.name,
+        avatar: model.avatar,
     };
     let success_message = message::SuccessMessage::Success;
 
@@ -174,6 +176,7 @@ async fn update_user_password(
     let model = result.unwrap();
     let res = user_models::UserProfileModel {
         name: model.name,
+        avatar: model.avatar,
     };
     let success_message = message::SuccessMessage::Success;
 
