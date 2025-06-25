@@ -38,6 +38,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .configure(routes::app_routes::config)
             .configure(routes::unauth_routes::config)
+            .configure(routes::user_routes::config)
             .configure(routes::dashboard_routes::config)
             .configure(routes::setting_routes::config)
             .configure(routes::place_routes::config)

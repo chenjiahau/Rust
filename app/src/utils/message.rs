@@ -61,6 +61,9 @@ pub enum ErrorMessage {
   PasswordMismatch,
   EmailAlreadyRegistered,
   InvalidCredentials,
+  // User messages
+  UserNotFound,
+  UserPasswordMismatch,
   // Spending category messages
   SpendingCategoryNotFound,
   SpendingCategoryInvalidOrder,
@@ -95,6 +98,9 @@ impl ErrorMessage {
       ErrorMessage::PasswordMismatch => "Password Mismatch".to_string(),
       ErrorMessage::EmailAlreadyRegistered => "Email Already Registered".to_string(),
       ErrorMessage::InvalidCredentials => "Invalid Credentials".to_string(),
+      // User messages
+      ErrorMessage::UserNotFound => "User Not Found".to_string(),
+      ErrorMessage::UserPasswordMismatch => "User Password Mismatch".to_string(),
       // Spending category messages
       ErrorMessage::SpendingCategoryNotFound => "Spending Category Not Found".to_string(),
       ErrorMessage::SpendingCategoryInvalidOrder => "Spending Category Invalid Order".to_string(),
@@ -129,18 +135,21 @@ impl ErrorMessage {
       ErrorMessage::PasswordMismatch => 2003,
       ErrorMessage::EmailAlreadyRegistered => 2004,
       ErrorMessage::InvalidCredentials => 2005,
+      // User messages
+      ErrorMessage::UserNotFound => 3000,
+      ErrorMessage::UserPasswordMismatch => 3001,
       // Spending category messages
-      ErrorMessage::SpendingCategoryNotFound => 3000,
-      ErrorMessage::SpendingCategoryInvalidOrder => 3001,
-      ErrorMessage::SpendingCategoryAlreadyExists => 3002,
-      ErrorMessage::SpendingCategoryNotAllowedToDelete => 3003,
+      ErrorMessage::SpendingCategoryNotFound => 4000,
+      ErrorMessage::SpendingCategoryInvalidOrder => 4001,
+      ErrorMessage::SpendingCategoryAlreadyExists => 4002,
+      ErrorMessage::SpendingCategoryNotAllowedToDelete => 4003,
       // Place messages
-      ErrorMessage::PlaceNotFound => 4000,
-      ErrorMessage::PlaceAlreadyExists => 4001,
+      ErrorMessage::PlaceNotFound => 5000,
+      ErrorMessage::PlaceAlreadyExists => 5001,
       // Consumption messages
-      ErrorMessage::ConsumptionNotFound => 5000,
+      ErrorMessage::ConsumptionNotFound => 6000,
       // Setting messages
-      ErrorMessage::SettingNotFound => 6000,
+      ErrorMessage::SettingNotFound => 7000,
     }
   }
 }
