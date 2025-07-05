@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::Write;
+use std::io::Cursor;
 
 use actix_web::{web, get, post, put, HttpRequest, Responder};
 use actix_multipart::Multipart;
@@ -9,7 +9,8 @@ use entity::users;
 use sha256::digest;
 use validator::Validate;
 use futures_util::TryStreamExt;
-use futures_util::stream::StreamExt as _;
+use uuid::Uuid;
+use image::ImageFormat;
 
 use crate::models::user_models;
 use crate::utils::app_state::AppState;
@@ -17,8 +18,9 @@ use crate::utils::api_response::{get_user_id_from_request, response};
 use crate::utils::message;
 use crate::utils::constants;
 
-const MAX_SIZE: usize = 1024 * 1024; // 1 MB
-const ALLOWED_FILE_TYPES: [&str; 2] = ["image/png", "image/jpeg"];
+const MAX_WIDTH: u32 = 1024; // 1024 pixels
+const MAX_HEIGHT: u32 = 1024; // 1024 pixels
+const ALLOWED_FILE_TYPES: [&str; 3] = ["image/png", "image/jpg", "image/jpeg"];
 
 #[get("")]
 async fn get_user_profile(
@@ -245,13 +247,18 @@ async fn upload_user_avatar(
             );
         }
 
-        let filepath = format!("{}/{}.png", upload_dir, user_id);
-        let mut file = match File::create(&filepath) {
-            Ok(f) => f,
+        let mut bytes = web::BytesMut::new();
+        while let Some(chunk) = field.try_next().await.unwrap_or(None) {
+            bytes.extend_from_slice(&chunk);
+        }
+
+        // Resize the image to a maximum of 1024x1024 pixels(1 MB)
+        let img = match image::load_from_memory(&bytes) {
+            Ok(i) => i.resize(MAX_WIDTH, MAX_HEIGHT, image::imageops::FilterType::Lanczos3),
             Err(_) => {
-                let error_message = message::ErrorMessage::InternalServerError;
+                let error_message = message::ErrorMessage::UserAvatarFileFailedToUpload;
                 return response(
-                    StatusCode::InternalServerError,
+                    StatusCode::BadRequest,
                     error_message.to_code(),
                     Some(error_message.to_string()),
                     Option::<()>::None,
@@ -259,47 +266,26 @@ async fn upload_user_avatar(
             },
         };
 
-        let mut total_size = 0;
-        while let Some(chunk) = field.next().await {
-            let data = match chunk {
-                Ok(d) => d,
-                Err(_) => {
-                    let error_message = message::ErrorMessage::InternalServerError;
-                    return response(
-                        StatusCode::InternalServerError,
-                        error_message.to_code(),
-                        Some(error_message.to_string()),
-                        Option::<()>::None,
-                    );
-                }
-            };
-
-            total_size += data.len();
-            if total_size > MAX_SIZE {
-                let error_message = message::ErrorMessage::UserAvatarFileSizeLimitExceeded;
-                return response(
-                    StatusCode::BadRequest,
-                    error_message.to_code(),
-                    Some(error_message.to_string()),
-                    Option::<()>::None,
-                );
-            }
-
-            if file.write_all(&data).is_err() {
-                let error_message = message::ErrorMessage::InternalServerError;
-                return response(
-                    StatusCode::InternalServerError,
-                    error_message.to_code(),
-                    Some(error_message.to_string()),
-                    Option::<()>::None,
-                );
-            }
+        let mut out_buf = Cursor::new(Vec::new());
+        if img.write_to(&mut out_buf, ImageFormat::Png).is_err() {
+            return response(
+                StatusCode::InternalServerError,
+                message::ErrorMessage::InternalServerError.to_code(),
+                Some(message::ErrorMessage::InternalServerError.to_string()),
+                Option::<()>::None,
+            );
         }
+
+        // Upload to the server
+        std::fs::create_dir_all(upload_dir.clone()).unwrap();
+        let new_filename = format!("{}.png", Uuid::new_v4());
+        let out_path = format!("{}/{}", upload_dir, new_filename);
+        std::fs::write(out_path, out_buf.into_inner()).unwrap();
 
         // Update the user's avatar in the database
         let user_model: users::ActiveModel = users::ActiveModel {
             id: Set(uuid::Uuid::parse_str(user_id.as_str()).unwrap()),
-            avatar: Set(Some(format!("{}.png", user_id))),
+            avatar: Set(Some(new_filename)),
             ..Default::default()
         };
 
