@@ -71,6 +71,7 @@ pub enum ErrorMessage {
   SpendingCategoryNotFound,
   SpendingCategoryInvalidOrder,
   SpendingCategoryAlreadyExists,
+  SpendingCategoryLimitReached,
   SpendingCategoryNotAllowedToDelete,
   // Place messages
   PlaceNotFound,
@@ -111,6 +112,7 @@ impl ErrorMessage {
       ErrorMessage::SpendingCategoryNotFound => "Spending Category Not Found".to_string(),
       ErrorMessage::SpendingCategoryInvalidOrder => "Spending Category Invalid Order".to_string(),
       ErrorMessage::SpendingCategoryAlreadyExists => "Spending Category Already Exists".to_string(),
+      ErrorMessage::SpendingCategoryLimitReached => "Spending Category Limit Reached".to_string(),
       ErrorMessage::SpendingCategoryNotAllowedToDelete => "Spending Category Not Allowed To Delete".to_string(),
       // Place messages
       ErrorMessage::PlaceNotFound => "Place Not Found".to_string(),
@@ -151,7 +153,8 @@ impl ErrorMessage {
       ErrorMessage::SpendingCategoryNotFound => 4000,
       ErrorMessage::SpendingCategoryInvalidOrder => 4001,
       ErrorMessage::SpendingCategoryAlreadyExists => 4002,
-      ErrorMessage::SpendingCategoryNotAllowedToDelete => 4003,
+      ErrorMessage::SpendingCategoryLimitReached => 4003,
+      ErrorMessage::SpendingCategoryNotAllowedToDelete => 4004,
       // Place messages
       ErrorMessage::PlaceNotFound => 5000,
       ErrorMessage::PlaceAlreadyExists => 5001,

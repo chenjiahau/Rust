@@ -16,11 +16,8 @@ pub struct SpendingCategoryModel {
 
 #[derive(Deserialize, Validate)]
 pub struct SpendingCategoryRequestModel {
-    pub user_id: Option<Uuid>,
     #[validate (length(min = 1, max = 32))]
     pub name: String,
-    #[validate (range(min = 0))]
-    pub order: i32,
     #[validate (range(min = 0.0))]
     pub budget: f64,
 }

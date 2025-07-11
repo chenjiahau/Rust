@@ -1,6 +1,6 @@
 use actix_web::{web, get, post, put, delete, HttpRequest, Responder};
 use httpstatus::StatusCode;
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter, QueryOrder, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set};
 use entity::spending_categories;
 use uuid::Uuid;
 use serde::Deserialize;
@@ -141,8 +141,7 @@ async fn create_spending_category(
     let user_id = get_user_id_from_request(&req).unwrap();
 
     // Validate the request
-    let mut req = data.into_inner();
-    req.user_id = Some(Uuid::parse_str(user_id.as_str()).unwrap());
+    let req = data.into_inner();
     req.validate().unwrap();
 
     if req.validate().is_err() {
@@ -155,11 +154,28 @@ async fn create_spending_category(
         );
     }
 
-    // Check order is unique and larger than 8 and less than 99
-    let order = req.order;
+    // Find out the total number of spending categories for the user
+    let count = spending_categories::Entity::find()
+        .filter(
+            Condition::all()
+                .add(spending_categories::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+        )
+        .count(&app_state.db)
+        .await;
 
-    if order < 8 || order > 99 {
-        let error_message = message::ErrorMessage::SpendingCategoryInvalidOrder;
+    if count.is_err() {
+        println!("Error fetching spending categories count: {:?}", count.err());
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
+    }
+
+    if count.unwrap() >= 20 {
+        let error_message = message::ErrorMessage::SpendingCategoryLimitReached;
         return response(
             StatusCode::BadRequest,
             error_message.to_code(),
@@ -168,19 +184,54 @@ async fn create_spending_category(
         )
     }
 
-    let result = spending_categories::Entity::find()
+    // Check if the spending category already exists
+    let exists = spending_categories::Entity::find()
         .filter(
             Condition::all()
                 .add(spending_categories::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
-                .add(spending_categories::Column::Order.eq(order))
+                .add(spending_categories::Column::Name.eq(req.name.clone()))
         )
         .one(&app_state.db)
         .await;
 
-    if result.unwrap().is_some() {
+    if exists.is_err() {
         let error_message = message::ErrorMessage::SpendingCategoryAlreadyExists;
         return response(
-            StatusCode::Conflict,
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
+    }
+
+    if exists.unwrap().is_some() {
+        let error_message = message::ErrorMessage::SpendingCategoryAlreadyExists;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
+    }
+
+    // Find out the maximum order number, but not 99 for the user
+    let max_order = spending_categories::Entity::find()
+        .filter(
+            Condition::all()
+                .add(spending_categories::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(spending_categories::Column::Order.lt(99))
+        )
+        .select_only()
+        .column_as(spending_categories::Column::Order.max(), "max_order")
+        .into_tuple::<Option<i32>>()
+        .one(&app_state.db)
+        .await;
+
+    if max_order.is_err() {
+        println!("Error fetching max order: {:?}", max_order.err());
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
             error_message.to_code(),
             Some(error_message.to_string()),
             Option::<()>::None,
@@ -188,10 +239,11 @@ async fn create_spending_category(
     }
 
     // Create the spending category
+    let next_order = max_order.unwrap().flatten().unwrap_or(0) as i32 + 1;
     let active_model = spending_categories::ActiveModel {
-        user_id: Set(req.user_id.unwrap()),
+        user_id: Set(Uuid::parse_str(user_id.as_str()).unwrap()),
         name: Set(req.name),
-        order: Set(req.order),
+        order: Set(next_order), // Set order to max + 1
         budget: Set(req.budget),
         created_at: Set(chrono::Utc::now().naive_utc()),
         updated_at: Set(chrono::Utc::now().naive_utc()),
@@ -203,6 +255,7 @@ async fn create_spending_category(
         .await;
 
     if result.is_err() {
+        println!("Error fetching max order1: {}", result.err().unwrap());
         let error_message = message::ErrorMessage::InternalServerError;
         return response(
             StatusCode::InternalServerError,
@@ -245,13 +298,32 @@ async fn update_spending_category(
     let id = param.id;
 
     // Validate the request
-    let mut req = data.into_inner();
-    req.user_id = Some(Uuid::parse_str(user_id.as_str()).unwrap());
+    let req = data.into_inner();
     req.validate().unwrap();
 
-    // Check order is unique and larger than 8 and less than 99
-    if req.order < 8 || req.order > 99 {
-        let error_message = message::ErrorMessage::SpendingCategoryInvalidOrder;
+    // Check if the name has been created
+    let exists = spending_categories::Entity::find()
+        .filter(
+            Condition::all()
+                .add(spending_categories::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(spending_categories::Column::Name.eq(req.name.clone()))
+                .add(spending_categories::Column::Id.ne(id))
+        )
+        .one(&app_state.db)
+        .await;
+
+    if exists.is_err() {
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
+    }
+
+    if exists.unwrap().is_some() {
+        let error_message = message::ErrorMessage::SpendingCategoryAlreadyExists;
         return response(
             StatusCode::BadRequest,
             error_message.to_code(),
@@ -291,16 +363,9 @@ async fn update_spending_category(
         )
     }
 
-    // If it is default category, its order is not allowed to be changed
-    let model = option_model.clone().unwrap();
-    if model.is_default {
-        req.order = model.order;
-    }
-    
     // Update the spending category
     let mut active_model = option_model.unwrap().into_active_model();
     active_model.name = Set(req.name);
-    active_model.order = Set(req.order);
     active_model.budget = Set(req.budget);
     active_model.updated_at = Set(chrono::Utc::now().naive_utc());
 
