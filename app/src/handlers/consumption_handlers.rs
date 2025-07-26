@@ -68,6 +68,7 @@ async fn get_consumptions(
             place: place_models::PlaceModel {
                 id: place.id,
                 user_id: Some(place.user_id),
+                spending_category_id: place.spending_category_id,
                 name: place.name.clone(),
                 created_at: place.created_at.to_string(),
                 updated_at: place.updated_at.to_string(),
@@ -164,6 +165,7 @@ async fn get_consumption(
         place: place_models::PlaceModel {
             id: place.id,
             user_id: Some(place.user_id),
+            spending_category_id: place.spending_category_id,
             name: place.name.clone(),
             created_at: place.created_at.to_string(),
             updated_at: place.updated_at.to_string(),

@@ -13,14 +13,20 @@ use crate::utils::api_response::{get_user_id_from_request, response};
 use crate::utils::message;
 
 #[derive(Debug, Deserialize)]
+struct SpendingCategoryId {
+    spending_category_id: i64,
+}
+
+#[derive(Debug, Deserialize)]
 struct IdParam {
     id: i64,
 }
 
-#[get("/list")]
+#[get("/list/{spending_category_id}")]
 async fn get_places(
     req: HttpRequest,
     app_state: web::Data::<AppState>,
+    param: web::Path<SpendingCategoryId>,
 ) -> impl Responder {
     let user_id = get_user_id_from_request(&req).unwrap();
 
@@ -29,6 +35,7 @@ async fn get_places(
         .filter(
             Condition::all()
                 .add(places::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(places::Column::SpendingCategoryId.eq(param.spending_category_id))
         )
         .order_by_asc(places::Column::Name)
         .all(&app_state.db)
@@ -51,6 +58,7 @@ async fn get_places(
             place_models::PlaceModel {
                 id: model.id,
                 user_id: Some(Uuid::parse_str(user_id.as_str()).unwrap()),
+                spending_category_id: model.spending_category_id,
                 name: model.name.clone(),
                 created_at: model.created_at.to_string(),
                 updated_at: model.updated_at.to_string(),
@@ -71,7 +79,7 @@ async fn get_places(
 async fn create_place(
     req: HttpRequest,
     app_state: web::Data::<AppState>,
-    data: web::Json<place_models::SettingRequestModel>,
+    data: web::Json<place_models::PlaceRequestModel>,
 ) -> impl Responder {
     let user_id = get_user_id_from_request(&req).unwrap();
     let req = data.into_inner();
@@ -110,6 +118,7 @@ async fn create_place(
     // Create the place
     let active_model = places::ActiveModel {
         user_id: Set(Uuid::parse_str(user_id.as_str()).unwrap()),
+        spending_category_id: Set(req.spending_category_id),
         name: Set(req.name),
         ..Default::default()
     };
@@ -131,6 +140,7 @@ async fn create_place(
     let res = place_models::PlaceModel {
         id: model.id,
         user_id: Some(Uuid::parse_str(user_id.as_str()).unwrap()),
+        spending_category_id: model.spending_category_id,
         name: model.name.clone(),
         created_at: model.created_at.to_string(),
         updated_at: model.updated_at.to_string(),
@@ -150,7 +160,7 @@ async fn update_place(
     req: HttpRequest,
     app_state: web::Data::<AppState>,
     param: web::Path<IdParam>,
-    data: web::Json<place_models::SettingRequestModel>,
+    data: web::Json<place_models::PlaceRequestModel>,
 ) -> impl Responder {
     let user_id = get_user_id_from_request(&req).unwrap();
     let req = data.into_inner();
@@ -210,6 +220,7 @@ async fn update_place(
 
     // Update the place
     let mut active_model = option_model.unwrap().into_active_model();
+    active_model.spending_category_id = Set(req.spending_category_id);
     active_model.name = Set(req.name);
     active_model.updated_at = Set(chrono::Utc::now().naive_utc());
 
@@ -230,6 +241,7 @@ async fn update_place(
     let res = place_models::PlaceModel {
         id: model.id,
         user_id: Some(Uuid::parse_str(user_id.as_str()).unwrap()),
+        spending_category_id: model.spending_category_id,
         name: model.name.clone(),
         created_at: model.created_at.to_string(),
         updated_at: model.updated_at.to_string(),

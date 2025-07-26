@@ -11,12 +11,21 @@ pub struct Model {
     pub name: String,
     pub created_at: DateTime,
     pub updated_at: DateTime,
+    pub spending_category_id: i64,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(has_many = "super::consumptions::Entity")]
     Consumptions,
+    #[sea_orm(
+        belongs_to = "super::spending_categories::Entity",
+        from = "Column::SpendingCategoryId",
+        to = "super::spending_categories::Column::Id",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    SpendingCategories,
     #[sea_orm(
         belongs_to = "super::users::Entity",
         from = "Column::UserId",
@@ -30,6 +39,12 @@ pub enum Relation {
 impl Related<super::consumptions::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Consumptions.def()
+    }
+}
+
+impl Related<super::spending_categories::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SpendingCategories.def()
     }
 }
 

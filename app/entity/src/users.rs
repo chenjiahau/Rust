@@ -12,9 +12,9 @@ pub struct Model {
     #[sea_orm(unique)]
     pub email: String,
     pub password: String,
-    pub avatar: Option<String>,
     pub is_active: bool,
     pub created_at: DateTime,
+    pub avatar: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

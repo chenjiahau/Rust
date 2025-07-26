@@ -6,6 +6,8 @@ use validator::Validate;
 pub struct PlaceModel {
     pub id: i64,
     pub user_id: Option<Uuid>,
+    #[serde(rename = "scId")]
+    pub spending_category_id: i64,
     pub name: String,
     pub created_at: String,
     pub updated_at: String,
@@ -17,6 +19,8 @@ pub struct PlacesResponseModel {
 }
 
 #[derive(Deserialize, Validate)]
-pub struct SettingRequestModel {
+pub struct PlaceRequestModel {
+    #[serde(rename = "scId")]
+    pub spending_category_id: i64,
     pub name: String,
 }
