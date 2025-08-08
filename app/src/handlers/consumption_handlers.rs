@@ -69,8 +69,13 @@ async fn get_consumptions(
         let place = model.1.clone().unwrap();
         let spending_category = model.2.clone().unwrap();
 
+        if consumption.date.clone().is_none() {
+            continue;
+        }
+
         let res_model = consumption_models::WholeConsumptionModel {
             id: Some(consumption.id),
+            date: consumption.date.unwrap_or_default(),
             place: place_models::PlaceModel {
                 id: place.id,
                 user_id: Some(place.user_id),
@@ -90,6 +95,7 @@ async fn get_consumptions(
                 updated_at: Some(spending_category.updated_at.to_string()),
             },
             amount: consumption.amount,
+            description: consumption.description,
             created_at: Some(consumption.created_at.to_string()),
             updated_at: Some(consumption.updated_at.to_string()),
         };
@@ -174,9 +180,11 @@ async fn get_consumption(
     let consumption = model.0.clone();
     let place = model.1.clone().unwrap();
     let spending_category = model.2.clone().unwrap();
+
     let res = consumption_models::ConsumptionResponseModel {
         id: consumption.id,
         user_id: consumption.user_id,
+        date: consumption.date,
         place: place_models::PlaceModel {
             id: place.id,
             user_id: Some(place.user_id),
@@ -196,6 +204,7 @@ async fn get_consumption(
             updated_at: Some(spending_category.updated_at.to_string()),
         },
         amount: consumption.amount,
+        description: consumption.description,
         created_at: Some(consumption.created_at.to_string()),
         updated_at: Some(consumption.updated_at.to_string()),
     };
@@ -239,9 +248,20 @@ async fn create_consumption(
         );
     }
 
+    if req.date.is_none() {
+        let error_message = message::ErrorMessage::InvalidRequest;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
     // Create the consumption
     let active_model = consumptions::ActiveModel {
         user_id: Set(req.user_id.unwrap()),
+        date: Set(req.date),
         place_id: Set(req.place_id),
         spending_category_id: Set(req.spending_category_id),
         amount: Set(req.amount),
@@ -265,9 +285,11 @@ async fn create_consumption(
     let res = consumption_models::ConsumptionModel {
         id: Some(model.id),
         user_id: Some(model.user_id),
+        date: model.date,
         place_id: model.place_id,
         spending_category_id: model.spending_category_id,
         amount: model.amount,
+        description: model.description,
         created_at: Some(model.created_at.to_string()),
         updated_at: Some(model.updated_at.to_string()),
     };
@@ -316,6 +338,16 @@ async fn update_consumption(
         );
     }
 
+    if req.date.is_none() {
+        let error_message = message::ErrorMessage::InvalidRequest;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
     // Check if the consumption exist
     let result = consumptions::Entity::find()
         .filter(
@@ -350,6 +382,7 @@ async fn update_consumption(
     // Update the consumption
     let mut active_model = option_model.unwrap().into_active_model();
     active_model.user_id = Set(req.user_id.unwrap());
+    active_model.date = Set(req.date);
     active_model.place_id = Set(req.place_id);
     active_model.spending_category_id = Set(req.spending_category_id);
     active_model.amount = Set(req.amount);
@@ -372,9 +405,11 @@ async fn update_consumption(
     let res = consumption_models::ConsumptionModel {
         id: Some(model.id),
         user_id: Some(model.user_id),
+        date: model.date,
         place_id: model.place_id,
         spending_category_id: model.spending_category_id,
         amount: model.amount,
+        description: model.description,
         created_at: Some(model.created_at.to_string()),
         updated_at: Some(model.updated_at.to_string()),
     };

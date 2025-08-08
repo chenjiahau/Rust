@@ -10,9 +10,11 @@ use super::spending_category_models::SpendingCategoryModel;
 pub struct ConsumptionModel {
     pub id: Option<i64>,
     pub user_id: Option<Uuid>,
+    pub date: Option<String>,
     pub place_id: i64,
     pub spending_category_id: i64,
     pub amount: f64,
+    pub description: Option<String>,
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
 }
@@ -20,9 +22,11 @@ pub struct ConsumptionModel {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct WholeConsumptionModel {
     pub id: Option<i64>,
+    pub date: String,
     pub place: PlaceModel,
     pub spending_category: SpendingCategoryModel,
     pub amount: f64,
+    pub description: Option<String>,
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
 }
@@ -30,6 +34,9 @@ pub struct WholeConsumptionModel {
 #[derive(Deserialize, Validate, ToSchema)]
 pub struct ConsumptionRequestModel {
     pub user_id: Option<Uuid>,
+    #[schema(value_type = String, example = "2023-1001")]
+    #[validate(length(min = 8, max = 8))]
+    pub date: Option<String>,
     pub place_id: i64,
     pub spending_category_id: i64,
     #[validate(range(min = 0.0))]
@@ -53,9 +60,11 @@ pub struct WholeConsumptionsResponseModel {
 pub struct ConsumptionResponseModel {
     pub id: i64,
     pub user_id: Uuid,
+    pub date: Option<String>,
     pub place: PlaceModel,
     pub spending_category: SpendingCategoryModel,
     pub amount: f64,
+    pub description: Option<String>,
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
 }
