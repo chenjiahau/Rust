@@ -50,6 +50,7 @@ async fn main() -> std::io::Result<()> {
             .configure(routes::place_routes::config)
             .configure(routes::spending_category_routes::config)
             .configure(routes::consumption_routes::config)
+            .configure(routes::monthly_budget_routes::config)
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .url("/api-docs/openapi.json", ApiDoc::openapi())

@@ -9,6 +9,7 @@ mod m20250410_055124_create_consumption_table;
 mod m20250625_055116_add_image_column_to_users_table;
 mod m20250726_000853_connect_spending_category_and_place_table;
 mod m20250808_055617_add_date_column_to_consumption_table;
+mod m20250808_105138_create_monthly_budget_table;
 
 pub struct Migrator;
 
@@ -25,6 +26,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20250625_055116_add_image_column_to_users_table::Migration),
             Box::new(m20250726_000853_connect_spending_category_and_place_table::Migration),
             Box::new(m20250808_055617_add_date_column_to_consumption_table::Migration),
+            Box::new(m20250808_105138_create_monthly_budget_table::Migration),
         ]
     }
 }

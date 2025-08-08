@@ -15,7 +15,6 @@ pub fn get_common_messages() -> HashMap<&'static i32, &'static str> {
   messages.insert(&409, "Conflict");
   messages.insert(&500, "Internal Server Error");
 
-
   messages
 }
 
@@ -80,6 +79,10 @@ pub enum ErrorMessage {
   ConsumptionNotFound,
   // Setting messages
   SettingNotFound,
+  // Monthly budget messages
+  MonthlyBudgetNotFound,
+  MonthlyBudgetNotDeleted,
+  MonthlyBudgetNotCreated,
 }
 
 impl ErrorMessage {
@@ -121,6 +124,10 @@ impl ErrorMessage {
       ErrorMessage::ConsumptionNotFound => "Consumption Not Found".to_string(),
       // Setting messages
       ErrorMessage::SettingNotFound => "Settings Not Found".to_string(),
+      // Monthly budget messages
+      ErrorMessage::MonthlyBudgetNotFound => "Monthly Budget Not Found".to_string(),
+      ErrorMessage::MonthlyBudgetNotDeleted => "Monthly Budget Not Deleted".to_string(),
+      ErrorMessage::MonthlyBudgetNotCreated => "Monthly Budget Not Created".to_string(),
     }
   }
 
@@ -162,6 +169,10 @@ impl ErrorMessage {
       ErrorMessage::ConsumptionNotFound => 6000,
       // Setting messages
       ErrorMessage::SettingNotFound => 7000,
+      // Monthly budget messages
+      ErrorMessage::MonthlyBudgetNotFound => 8000,
+      ErrorMessage::MonthlyBudgetNotDeleted => 8001,
+      ErrorMessage::MonthlyBudgetNotCreated => 8002,
     }
   }
 }

@@ -28,6 +28,9 @@ use crate::models;
         handlers::consumption_handlers::create_consumption,
         handlers::consumption_handlers::update_consumption,
         handlers::consumption_handlers::delete_consumption,
+        handlers::monthly_budget_handlers::get_monthly_budget_count,
+        handlers::monthly_budget_handlers::get_monthly_budget,
+        handlers::monthly_budget_handlers::create_monthly_budget,
     ),
     components(
         schemas(

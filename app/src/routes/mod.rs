@@ -8,3 +8,4 @@ pub mod setting_routes;
 pub mod place_routes;
 pub mod spending_category_routes;
 pub mod consumption_routes;
+pub mod monthly_budget_routes;

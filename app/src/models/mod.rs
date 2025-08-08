@@ -5,3 +5,4 @@ pub mod setting_models;
 pub mod place_models;
 pub mod spending_category_models;
 pub mod consumption_models;
+pub mod monthly_budget_models;

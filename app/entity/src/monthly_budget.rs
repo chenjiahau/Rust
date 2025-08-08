@@ -3,53 +3,43 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "spending_categories")]
+#[sea_orm(table_name = "monthly_budget")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub user_id: Uuid,
-    pub name: String,
-    pub order: i32,
+    pub month: i32,
+    pub year: i32,
+    pub spending_category_id: i64,
     #[sea_orm(column_type = "Double")]
     pub budget: f64,
-    pub is_default: bool,
     pub created_at: DateTime,
     pub updated_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::consumptions::Entity")]
-    Consumptions,
-    #[sea_orm(has_many = "super::monthly_budget::Entity")]
-    MonthlyBudget,
-    #[sea_orm(has_many = "super::places::Entity")]
-    Places,
+    #[sea_orm(
+        belongs_to = "super::spending_categories::Entity",
+        from = "Column::SpendingCategoryId",
+        to = "super::spending_categories::Column::Id",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    SpendingCategories,
     #[sea_orm(
         belongs_to = "super::users::Entity",
         from = "Column::UserId",
         to = "super::users::Column::Id",
-        on_update = "Cascade",
+        on_update = "NoAction",
         on_delete = "Cascade"
     )]
     Users,
 }
 
-impl Related<super::consumptions::Entity> for Entity {
+impl Related<super::spending_categories::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Consumptions.def()
-    }
-}
-
-impl Related<super::monthly_budget::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::MonthlyBudget.def()
-    }
-}
-
-impl Related<super::places::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Places.def()
+        Relation::SpendingCategories.def()
     }
 }
 

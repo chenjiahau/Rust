@@ -6,3 +6,4 @@ pub mod setting_handlers;
 pub mod place_handlers;
 pub mod spending_category_handlers;
 pub mod consumption_handlers;
+pub mod monthly_budget_handlers;
