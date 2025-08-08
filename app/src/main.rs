@@ -3,8 +3,11 @@ mod handlers;
 mod routes;
 mod models;
 
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 use actix_files::Files;
 use actix_web::{web, middleware::Logger, App, HttpServer};
+use utils::swagger::ApiDoc;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -47,6 +50,10 @@ async fn main() -> std::io::Result<()> {
             .configure(routes::place_routes::config)
             .configure(routes::spending_category_routes::config)
             .configure(routes::consumption_routes::config)
+            .service(
+                SwaggerUi::new("/swagger-ui/{_:.*}")
+                    .url("/api-docs/openapi.json", ApiDoc::openapi())
+            )
     })
     .bind((address, port))?
     .run()

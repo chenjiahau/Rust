@@ -12,6 +12,12 @@ use crate::utils::app_state::AppState;
 use crate::utils::api_response::response;
 use crate::utils::message;
 
+#[utoipa::path(
+    post,
+    path = "/api/unauth/signup",
+    request_body = inline(unauth_models::SignupRequestModel),
+    tag = "Unauth",
+)]
 #[post("/signup")]
 async fn signup(
     app_state: web::Data::<AppState>,
@@ -141,6 +147,12 @@ async fn signup(
     response(StatusCode::Ok, success_message.to_code(), Some(success_message.to_string()), Some(res))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/unauth/signin",
+    request_body = inline(unauth_models::SigninRequestModel),
+    tag = "Unauth",
+)]
 #[post("/signin")]
 async fn signin(
     app_state: web::Data::<AppState>,

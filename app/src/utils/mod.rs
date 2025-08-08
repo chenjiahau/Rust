@@ -4,3 +4,4 @@ pub mod db_connection;
 pub mod api_response;
 pub mod message;
 pub mod jwt;
+pub mod swagger;

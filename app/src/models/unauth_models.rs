@@ -1,8 +1,9 @@
 use serde::{Serialize, Deserialize};
 use validator::Validate;
 use uuid::Uuid;
+use utoipa::ToSchema;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct TokenModel {
     pub token: String,
     #[serde(rename = "expirationTime")]
@@ -11,7 +12,7 @@ pub struct TokenModel {
     pub start_time: usize,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct SignupRequestModel {
     #[validate (length(min = 8, max = 32))]
     pub name: Option<String>,
@@ -21,13 +22,13 @@ pub struct SignupRequestModel {
     pub password: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize,ToSchema)]
 pub struct SignupResponseModel {
     pub name: String,
     pub email: String,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Validate, ToSchema)]
 pub struct SigninRequestModel {
     #[validate(email)]
     pub email: String,
@@ -35,7 +36,7 @@ pub struct SigninRequestModel {
     pub password: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema )]
 pub struct SigninResponseModel {
     pub id: Uuid,
     pub name: String,

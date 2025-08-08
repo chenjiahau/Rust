@@ -22,6 +22,15 @@ struct IdParam {
     id: i64,
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/place/list/{spending_category_id}",
+    params(
+        ("spending_category_id" = i64, Path, description = "Spending category id")
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Place",
+)]
 #[get("/list/{spending_category_id}")]
 async fn get_places(
     req: HttpRequest,
@@ -75,6 +84,13 @@ async fn get_places(
     )
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/place",
+    request_body = inline(place_models::PlaceRequestModel),
+    security(("bearerAuth" = [])),
+    tag = "Place",
+)]
 #[post("")]
 async fn create_place(
     req: HttpRequest,
@@ -155,6 +171,16 @@ async fn create_place(
     )
 }
 
+#[utoipa::path(
+    put,
+    path = "/api/place/{id}",
+    params(
+        ("id" = i64, Path, description = "Place id")
+    ),
+    request_body = inline(place_models::PlaceRequestModel),
+    security(("bearerAuth" = [])),
+    tag = "Place",
+)]
 #[put("/{id}")]
 async fn update_place(
     req: HttpRequest,
@@ -256,6 +282,15 @@ async fn update_place(
     )
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/place/{id}",
+    params(
+        ("id" = i64, Path, description = "Place id")
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Place",
+)]
 #[delete("/{id}")]
 async fn delete_place(
     req: HttpRequest,

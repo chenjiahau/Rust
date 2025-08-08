@@ -17,6 +17,12 @@ struct IdParam {
     id: i64,
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/spending_category/list",
+    security(("bearerAuth" = [])),
+    tag = "Spending Category",
+)]
 #[get("/list")]
 async fn get_spending_categories(
     req: HttpRequest,
@@ -70,6 +76,15 @@ async fn get_spending_categories(
     )
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/spending_category/{id}",
+    params(
+        ("id" = i64, Path, description = "Spending category id")
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Spending Category",
+)]
 #[get("/{id}")]
 async fn get_spending_category(
     req: HttpRequest,
@@ -132,6 +147,13 @@ async fn get_spending_category(
     )
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/spending_category",
+    security(("bearerAuth" = [])),
+    request_body = inline(spending_category_models::SpendingCategoryRequestModel),
+    tag = "Spending Category",
+)]
 #[post("")]
 async fn create_spending_category(
     req: HttpRequest,
@@ -287,6 +309,16 @@ async fn create_spending_category(
     )
 }
 
+#[utoipa::path(
+    put,
+    path = "/api/spending_category/{id}",
+    params(
+        ("id" = i64, Path, description = "Spending category id")
+    ),
+    request_body = inline(spending_category_models::SpendingCategoryRequestModel),
+    security(("bearerAuth" = [])),
+    tag = "Spending Category",
+)]
 #[put("/{id}")]
 async fn update_spending_category(
     req: HttpRequest,
@@ -405,6 +437,15 @@ async fn update_spending_category(
     )
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/spending_category/{id}",
+    params(
+        ("id" = i64, Path, description = "Spending category id")
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Spending Category",
+)]
 #[delete("/{id}")]
 async fn delete_spending_category(
     req: HttpRequest,

@@ -10,6 +10,12 @@ use crate::utils::app_state::AppState;
 use crate::utils::api_response::{get_user_id_from_request, response};
 use crate::utils::message;
 
+#[utoipa::path(
+    get,
+    path = "/api/setting",
+    security(("bearerAuth" = [])),
+    tag = "Setting",
+)]
 #[get("")]
 async fn get_setting(
     req: HttpRequest,
@@ -54,6 +60,13 @@ async fn get_setting(
     )
 }
 
+#[utoipa::path(
+    put,
+    path = "/api/setting",
+    security(("bearerAuth" = [])),
+    request_body = inline(setting_models::SettingRequestModel),
+    tag = "Setting",
+)]
 #[put("")]
 async fn update_setting(
     req: HttpRequest,

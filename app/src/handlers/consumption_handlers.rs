@@ -17,6 +17,12 @@ struct IdParam {
     id: i64,
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/consumption/list",
+    security(("bearerAuth" = [])),
+    tag = "Consumption",
+)]
 #[get("/list")]
 async fn get_consumptions(
     req: HttpRequest,
@@ -104,6 +110,15 @@ async fn get_consumptions(
     )
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/consumption/{id}",
+    params(
+        ("id" = i64, Path, description = "Consumption id")
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Consumption",
+)]
 #[get("/{id}")]
 async fn get_consumption(
     req: HttpRequest,
@@ -194,6 +209,13 @@ async fn get_consumption(
     )
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/consumption",
+    request_body = inline(consumption_models::ConsumptionRequestModel),
+    security(("bearerAuth" = [])),
+    tag = "Consumption",
+)]
 #[post("")]
 async fn create_consumption(
     req: HttpRequest,
@@ -259,6 +281,16 @@ async fn create_consumption(
     )
 }
 
+#[utoipa::path(
+    put,
+    path = "/api/consumption/{id}",
+    params(
+        ("id" = i64, Path, description = "Consumption id")
+    ),
+    request_body = inline(consumption_models::ConsumptionRequestModel),
+    security(("bearerAuth" = [])),
+    tag = "Consumption",
+)]
 #[put("/{id}")]
 async fn update_consumption(
     req: HttpRequest,
@@ -356,6 +388,15 @@ async fn update_consumption(
     )
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/consumption/{id}",
+    params(
+        ("id" = i64, Path, description = "Consumption id")
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Consumption",
+)]
 #[delete("/{id}")]
 async fn delete_consumption(
     req: HttpRequest,

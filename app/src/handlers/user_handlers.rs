@@ -22,6 +22,12 @@ const MAX_WIDTH: u32 = 1024; // 1024 pixels
 const MAX_HEIGHT: u32 = 1024; // 1024 pixels
 const ALLOWED_FILE_TYPES: [&str; 3] = ["image/png", "image/jpg", "image/jpeg"];
 
+#[utoipa::path(
+    get,
+    path = "/api/user",
+    security(("bearerAuth" = [])),
+    tag = "User",
+)]
 #[get("")]
 async fn get_user_profile(
     req: HttpRequest,
@@ -62,6 +68,14 @@ async fn get_user_profile(
     )
 }
 
+#[utoipa::path(
+    put,
+    path = "/api/user",
+    request_body = inline(user_models::UserProfileUpdateRequestModel),
+    security(("bearerAuth" = [])),
+    responses(),
+    tag = "User",
+)]
 #[put("")]
 async fn update_user_profile(
     req: HttpRequest,
@@ -116,6 +130,13 @@ async fn update_user_profile(
     )
 }
 
+#[utoipa::path(
+    put,
+    path = "/api/user/password",
+    request_body = inline(user_models::UserPasswordUpdateRequestModel),
+    security(("bearerAuth" = [])),
+    tag = "User",
+)]
 #[put("/password")]
 async fn update_user_password(
     req: HttpRequest,

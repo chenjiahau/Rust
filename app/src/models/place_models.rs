@@ -1,8 +1,9 @@
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use validator::Validate;
+use utoipa::ToSchema;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct PlaceModel {
     pub id: i64,
     pub user_id: Option<Uuid>,
@@ -13,12 +14,12 @@ pub struct PlaceModel {
     pub updated_at: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct PlacesResponseModel {
     pub places: Vec<PlaceModel>,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Validate, ToSchema)]
 pub struct PlaceRequestModel {
     #[serde(rename = "scId")]
     pub spending_category_id: i64,
