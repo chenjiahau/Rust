@@ -13,6 +13,12 @@ use crate::utils::api_response::{get_user_id_from_request, response};
 use crate::utils::message;
 
 #[derive(Debug, Deserialize)]
+struct YearAndMonthParam {
+    year: i32,
+    month: u32,
+}
+
+#[derive(Debug, Deserialize)]
 struct IdParam {
     id: i64,
 }
@@ -64,6 +70,113 @@ async fn get_consumptions(
     let models = result.unwrap();
     let mut res: Vec<consumption_models::WholeConsumptionModel> = Vec::new();
 
+    for model in &models {
+        let consumption = model.0.clone();
+        let place = model.1.clone().unwrap();
+        let spending_category = model.2.clone().unwrap();
+
+        if consumption.date.clone().is_none() {
+            continue;
+        }
+
+        let res_model = consumption_models::WholeConsumptionModel {
+            id: Some(consumption.id),
+            date: consumption.date.unwrap_or_default(),
+            place: place_models::PlaceModel {
+                id: place.id,
+                user_id: Some(place.user_id),
+                spending_category_id: place.spending_category_id,
+                name: place.name.clone(),
+                created_at: place.created_at.to_string(),
+                updated_at: place.updated_at.to_string(),
+            },
+            spending_category: spending_category_models::SpendingCategoryModel {
+                id: Some(spending_category.id),
+                user_id: Some(spending_category.user_id),
+                name: spending_category.name.clone(),
+                order: spending_category.order,
+                budget: spending_category.budget,
+                is_default: spending_category.is_default,
+                created_at: Some(spending_category.created_at.to_string()),
+                updated_at: Some(spending_category.updated_at.to_string()),
+            },
+            amount: consumption.amount,
+            description: consumption.description,
+            created_at: Some(consumption.created_at.to_string()),
+            updated_at: Some(consumption.updated_at.to_string()),
+        };
+
+        res.push(res_model);
+    }
+
+    let response_model = consumption_models::WholeConsumptionsResponseModel {
+        consumptions: res,
+    };
+
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(response_model),
+    )
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/consumption/{year}/{month}",
+    params(
+        ("year" = i32, Path, description = "Year of the consumption"),
+        ("month" = u32, Path, description = "Month of the consumption")
+    ),
+    security(("bearerAuth" = [])),
+    tag = "Consumption",
+)]
+#[get("/{year}/{month}")]
+async fn get_consumptions_by_year_and_month(
+    req: HttpRequest,
+    app_state: web::Data::<AppState>,
+    param: web::Path<YearAndMonthParam>,
+) -> impl Responder {
+    let user_id = get_user_id_from_request(&req).unwrap();
+    let year = param.year;
+    let month = param.month;
+    let date_str = format!("{}{:02}", year, month);
+
+    // Get consumptions
+    let result = consumptions::Entity::find()
+        .join(
+            sea_orm::JoinType::InnerJoin,
+            consumptions::Relation::Places.def(),
+        )
+        .select_also(places::Entity)
+        .join(
+            sea_orm::JoinType::InnerJoin,
+            consumptions::Relation::SpendingCategories.def(),
+        )
+        .select_also(spending_categories::Entity)
+        .filter(
+            Condition::all()
+                .add(consumptions::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(consumptions::Column::Date.eq(date_str))
+        )
+        .order_by_desc(consumptions::Column::CreatedAt)
+        .all(&app_state.db)
+        .await;
+
+    if result.is_err() {
+        let error_message = message::ErrorMessage::ConsumptionNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
+    // Return the consumptions
+    let models = result.unwrap();
+    let mut res: Vec<consumption_models::WholeConsumptionModel> = Vec::new();
     for model in &models {
         let consumption = model.0.clone();
         let place = model.1.clone().unwrap();

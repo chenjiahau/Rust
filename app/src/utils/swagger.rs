@@ -25,6 +25,7 @@ use crate::models;
         handlers::place_handlers::delete_place,
         handlers::consumption_handlers::get_consumptions,
         handlers::consumption_handlers::get_consumption,
+        handlers::consumption_handlers::get_consumptions_by_year_and_month,
         handlers::consumption_handlers::create_consumption,
         handlers::consumption_handlers::update_consumption,
         handlers::consumption_handlers::delete_consumption,
