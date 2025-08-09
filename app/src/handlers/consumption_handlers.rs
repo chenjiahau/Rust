@@ -14,8 +14,9 @@ use crate::utils::message;
 
 #[derive(Debug, Deserialize)]
 struct YearAndMonthParam {
-    year: i32,
+    year: u32,
     month: u32,
+    day: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -124,15 +125,16 @@ async fn get_consumptions(
 
 #[utoipa::path(
     get,
-    path = "/api/consumption/{year}/{month}",
+    path = "/api/consumption/{year}/{month}/{day}",
     params(
-        ("year" = i32, Path, description = "Year of the consumption"),
-        ("month" = u32, Path, description = "Month of the consumption")
+        ("year" = u32, Path, description = "Year of the consumption"),
+        ("month" = u32, Path, description = "Month of the consumption"),
+        ("day" = u32, Path, description = "Day of the consumption")
     ),
     security(("bearerAuth" = [])),
     tag = "Consumption",
 )]
-#[get("/{year}/{month}")]
+#[get("/{year}/{month}/{day}")]
 async fn get_consumptions_by_year_and_month(
     req: HttpRequest,
     app_state: web::Data::<AppState>,
@@ -141,7 +143,8 @@ async fn get_consumptions_by_year_and_month(
     let user_id = get_user_id_from_request(&req).unwrap();
     let year = param.year;
     let month = param.month;
-    let date_str = format!("{}{:02}", year, month);
+    let day = param.day;
+    let date_str = format!("{}{:02}{:02}", year, month, day);
 
     // Get consumptions
     let result = consumptions::Entity::find()
