@@ -35,14 +35,14 @@ async fn get_monthly_budget_count(
     let user_id = get_user_id_from_request(&req).unwrap();
 
     // Fetch monthly budgets for the user
-    let result = entity::monthly_budget::Entity::find()
+    let result = entity::monthly_budgets::Entity::find()
         .filter(
             Condition::all()
-                .add(entity::monthly_budget::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
-                .add(entity::monthly_budget::Column::Year.eq(param.year))
-                .add(entity::monthly_budget::Column::Month.eq(param.month)),
+                .add(entity::monthly_budgets::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(entity::monthly_budgets::Column::Year.eq(param.year))
+                .add(entity::monthly_budgets::Column::Month.eq(param.month)),
         )
-        .order_by(entity::monthly_budget::Column::CreatedAt, sea_orm::Order::Asc)
+        .order_by(entity::monthly_budgets::Column::CreatedAt, sea_orm::Order::Asc)
         .all(&app_state.db)
         .await;
 
@@ -77,14 +77,14 @@ async fn get_monthly_budget(
     let user_id = get_user_id_from_request(&req).unwrap();
 
     // Fetch monthly budgets for the user
-    let result = entity::monthly_budget::Entity::find()
+    let result = entity::monthly_budgets::Entity::find()
         .filter(
             Condition::all()
-                .add(entity::monthly_budget::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
-                .add(entity::monthly_budget::Column::Year.eq(param.year))
-                .add(entity::monthly_budget::Column::Month.eq(param.month)),
+                .add(entity::monthly_budgets::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(entity::monthly_budgets::Column::Year.eq(param.year))
+                .add(entity::monthly_budgets::Column::Month.eq(param.month)),
         )
-        .order_by(entity::monthly_budget::Column::CreatedAt, sea_orm::Order::Asc)
+        .order_by(entity::monthly_budgets::Column::CreatedAt, sea_orm::Order::Asc)
         .all(&app_state.db)
         .await;
     
@@ -141,12 +141,12 @@ async fn create_monthly_budget(
     let user_id = get_user_id_from_request(&req).unwrap();
 
     // Delete the existing monthly budgets for the user in the specified month and year
-    let result = entity::monthly_budget::Entity::delete_many()
+    let result = entity::monthly_budgets::Entity::delete_many()
         .filter(
             Condition::all()
-                .add(entity::monthly_budget::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
-                .add(entity::monthly_budget::Column::Year.eq(param.year))
-                .add(entity::monthly_budget::Column::Month.eq(param.month)),
+                .add(entity::monthly_budgets::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(entity::monthly_budgets::Column::Year.eq(param.year))
+                .add(entity::monthly_budgets::Column::Month.eq(param.month)),
         )
         .exec(&app_state.db)
         .await;
@@ -198,7 +198,7 @@ async fn create_monthly_budget(
 
     // Create monthly budgets
     for _budget in &res.monthly_budgets {
-        let new_monthly_budget = entity::monthly_budget::ActiveModel {
+        let new_monthly_budget = entity::monthly_budgets::ActiveModel {
             user_id: Set(Uuid::parse_str(user_id.as_str()).unwrap()),
             month: Set(param.month),
             year: Set(param.year),

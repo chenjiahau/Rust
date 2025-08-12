@@ -3,7 +3,7 @@
 pub mod prelude;
 
 pub mod consumptions;
-pub mod monthly_budget;
+pub mod monthly_budgets;
 pub mod places;
 pub mod settings;
 pub mod spending_categories;
