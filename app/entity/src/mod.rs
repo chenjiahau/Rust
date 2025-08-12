@@ -4,6 +4,7 @@ pub mod prelude;
 
 pub mod consumptions;
 pub mod monthly_budgets;
+pub mod monthly_settings;
 pub mod places;
 pub mod settings;
 pub mod spending_categories;

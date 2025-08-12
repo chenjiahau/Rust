@@ -32,6 +32,9 @@ use crate::models;
         handlers::monthly_budget_handlers::get_monthly_budget_count,
         handlers::monthly_budget_handlers::get_monthly_budget,
         handlers::monthly_budget_handlers::create_monthly_budget,
+        handlers::monthly_setting_handlers::get_monthly_setting_count,
+        handlers::monthly_setting_handlers::get_monthly_setting,
+        handlers::monthly_setting_handlers::create_monthly_setting,
     ),
     components(
         schemas(

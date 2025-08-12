@@ -83,6 +83,10 @@ pub enum ErrorMessage {
   MonthlyBudgetNotFound,
   MonthlyBudgetNotDeleted,
   MonthlyBudgetNotCreated,
+  // Monthly setting messages
+  MonthlySettingNotFound,
+  MonthlySettingNotDeleted,
+  MonthlySettingNotCreated,
 }
 
 impl ErrorMessage {
@@ -128,6 +132,10 @@ impl ErrorMessage {
       ErrorMessage::MonthlyBudgetNotFound => "Monthly Budget Not Found".to_string(),
       ErrorMessage::MonthlyBudgetNotDeleted => "Monthly Budget Not Deleted".to_string(),
       ErrorMessage::MonthlyBudgetNotCreated => "Monthly Budget Not Created".to_string(),
+      // Monthly setting messages
+      ErrorMessage::MonthlySettingNotFound => "Monthly Setting Not Found".to_string(),
+      ErrorMessage::MonthlySettingNotDeleted => "Monthly Setting Not Deleted".to_string(),
+      ErrorMessage::MonthlySettingNotCreated => "Monthly Setting Not Created".to_string(),
     }
   }
 
@@ -173,6 +181,10 @@ impl ErrorMessage {
       ErrorMessage::MonthlyBudgetNotFound => 8000,
       ErrorMessage::MonthlyBudgetNotDeleted => 8001,
       ErrorMessage::MonthlyBudgetNotCreated => 8002,
+      // Monthly setting messages
+      ErrorMessage::MonthlySettingNotFound => 9000,
+      ErrorMessage::MonthlySettingNotDeleted => 9001,
+      ErrorMessage::MonthlySettingNotCreated => 9002,
     }
   }
 }

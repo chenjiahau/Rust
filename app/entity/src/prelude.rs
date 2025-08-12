@@ -2,6 +2,7 @@
 
 pub use super::consumptions::Entity as Consumptions;
 pub use super::monthly_budgets::Entity as MonthlyBudgets;
+pub use super::monthly_settings::Entity as MonthlySettings;
 pub use super::places::Entity as Places;
 pub use super::settings::Entity as Settings;
 pub use super::spending_categories::Entity as SpendingCategories;
