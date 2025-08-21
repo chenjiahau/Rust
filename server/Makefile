@@ -1,8 +1,8 @@
 create_db:
-	docker exec -it accounting createdb --username=accounting --owner=accounting accounting
+	docker exec -it accounting-db createdb --username=accounting --owner=accounting accounting
 
 drop_db:
-	docker exec -it accounting dropdb accounting -U accounting
+	docker exec -it accounting-db dropdb accounting -U accounting
 
 create_migration:
 	sea-orm-cli migrate generate ${file_name}

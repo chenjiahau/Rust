@@ -1,0 +1,14 @@
+services:
+  accounting-db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: accounting-db
+    env_file:
+      - "./db.env"
+    ports:
+      - "5433:5432"
+    restart: always
+
+volumes:
+  postgres_data:
