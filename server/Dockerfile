@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 COPY --from=builder /app/target/release/accounting-api /usr/local/bin/accounting-api
 
 # Copy the JSON file your app needs
+COPY --from=builder /app/data/default_budgets.json /app/data/default_budgets.json
 COPY --from=builder /app/data/spending_categories.json /app/data/spending_categories.json
 
 # Set working directory for runtime

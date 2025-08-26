@@ -1,50 +1,50 @@
 [
   {
-    "name": "飲食",
+    "name": "Food",
     "order": 1,
-    "budget": 0,
+    "budget": 7500,
     "is_default": true
   },
   {
-    "name": "衣服",
+    "name": "Clothing",
     "order": 2,
-    "budget": 0,
+    "budget": 1500,
     "is_default": true
   },
   {
-    "name": "住宿",
+    "name": "Accommodation",
     "order": 3,
-    "budget": 0,
+    "budget": 9000,
     "is_default": true
   },
   {
-    "name": "交通",
+    "name": "Transportation",
     "order": 4,
-    "budget": 0,
+    "budget": 3000,
     "is_default": true
   },
   {
-    "name": "醫療",
+    "name": "Healthcare",
     "order": 5,
-    "budget": 0,
+    "budget": 1500,
     "is_default": true
   },
   {
-    "name": "娛樂",
+    "name": "Entertainment",
     "order": 6,
-    "budget": 0,
+    "budget": 3000,
     "is_default": true
   },
   {
-    "name": "投資",
+    "name": "Investment",
     "order": 7,
-    "budget": 0,
+    "budget": 3000,
     "is_default": true
   },
   {
-    "name": "其他",
+    "name": "Others",
     "order": 99,
-    "budget": 0,
+    "budget": 1500,
     "is_default": true
   }
 ]

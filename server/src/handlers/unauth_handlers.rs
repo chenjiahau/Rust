@@ -69,8 +69,37 @@ async fn signup(
         .await;
 
     // Insert the user to settings table
+    let default_budget_data = match File::open("data/default_budgets.json") {
+        Ok(file) => file,
+        Err(_) => {
+            let error_message = message::ErrorMessage::InternalServerError;
+            return response(
+                StatusCode::InternalServerError,
+                error_message.to_code(),
+                Some(error_message.to_string()),
+                Option::<()>::None,
+            );
+        }
+    };
+
+    let reader = BufReader::new(default_budget_data);
+    let default_budget: serde_json::Value = match serde_json::from_reader(reader) {
+        Ok(data) => data,
+        Err(_) => {
+            let error_message = message::ErrorMessage::InternalServerError;
+            return response(
+                StatusCode::InternalServerError,
+                error_message.to_code(),
+                Some(error_message.to_string()),
+                Option::<()>::None,
+            );
+        }
+    };
+
     let setting_result = entity::settings::ActiveModel {
         user_id: Set(user_id.clone()),
+        default_income: Set(default_budget["default_income"].as_i64().unwrap()),
+        target_deposit: Set(default_budget["default_target_deposit"].as_i64().unwrap()),
         ..Default::default()
     }
     .insert(&app_state.db)
@@ -86,6 +115,7 @@ async fn signup(
         );
     }
 
+    // Insert the default spending categories into the spending_categories table
     let spending_category_data = match File::open("data/spending_categories.json") {
         Ok(file) => file,
         Err(_) => {
@@ -112,7 +142,6 @@ async fn signup(
         }
     };
 
-    // Insert the default spending categories into the spending_categories table
     for category in &mut spending_categories {
         category.user_id = Some(user_id.clone());
         let spending_category_result = entity::spending_categories::ActiveModel {
