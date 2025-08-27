@@ -12,5 +12,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(spending_category_handlers::create_spending_category)
             .service(spending_category_handlers::update_spending_category)
             .service(spending_category_handlers::delete_spending_category)
+            .service(spending_category_handlers::update_sc_to_current_month)
   );
 }

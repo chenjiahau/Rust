@@ -1,12 +1,12 @@
 use actix_web::{web, get, post, put, delete, HttpRequest, Responder};
 use httpstatus::StatusCode;
 use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set};
-use entity::spending_categories;
 use uuid::Uuid;
 use serde::Deserialize;
 use validator::Validate;
-use chrono;
+use chrono::{Datelike, Utc};
 
+use entity::{spending_categories, monthly_budgets};
 use crate::models::spending_category_models;
 use crate::utils::app_state::AppState;
 use crate::utils::api_response::{get_user_id_from_request, response};
@@ -524,5 +524,117 @@ async fn delete_spending_category(
         success_message.to_code(),
         Some(success_message.to_string()),
         Option::<()>::None,
+    )
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/spending_category/current",
+    security(("bearerAuth" = [])),
+    tag = "Spending Category",
+)]
+#[post("/current")]
+async fn update_sc_to_current_month(
+    req: HttpRequest,
+    app_state: web::Data::<AppState>,
+) -> impl Responder {
+    let user_id = get_user_id_from_request(&req).unwrap();
+
+    // Get spending categories
+    let result = spending_categories::Entity::find()
+        .filter(
+            Condition::all()
+                .add(spending_categories::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+        )
+        .order_by_asc(spending_categories::Column::Order)
+        .all(&app_state.db)
+        .await;
+
+    if result.is_err() {
+        let error_message = message::ErrorMessage::SpendingCategoryNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
+    }
+
+    let models = result.unwrap();
+    let res = spending_category_models::SpendingCategoriesResponseModel {
+        spending_categories: models.iter().map(|model| {
+            spending_category_models::SpendingCategoryModel {
+                id: Some(model.id),
+                user_id: Some(model.user_id),
+                name: model.name.clone(),
+                order: model.order,
+                budget: model.budget,
+                is_default: model.is_default,
+                created_at: Some(model.created_at.to_string()),
+                updated_at: Some(model.updated_at.to_string()),
+            }
+        }).collect(),
+    };
+
+    // Delete the current year and month of monthly_budgets
+    let now = Utc::now();
+    let current_year = now.year();
+    let current_month = now.month();
+
+    let result = monthly_budgets::Entity::delete_many()
+        .filter(
+            Condition::all()
+                .add(monthly_budgets::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(monthly_budgets::Column::Year.eq(current_year))
+                .add(monthly_budgets::Column::Month.eq(current_month))
+        )
+        .exec(&app_state.db)
+        .await;
+
+   if result.is_err() {
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        )
+    }
+
+    // Insert the spending categories to monthly_budgets
+    for category in models.iter() {
+        let active_model = monthly_budgets::ActiveModel {
+            user_id: Set(category.user_id),
+            spending_category_id: Set(category.id),
+            year: Set(current_year),
+            month: Set(current_month as i32),
+            budget: Set(category.budget),
+            created_at: Set(chrono::Utc::now().naive_utc()),
+            updated_at: Set(chrono::Utc::now().naive_utc()),
+            ..Default::default()
+        };
+
+        let result = active_model
+            .insert(&app_state.db)
+            .await;
+
+        if result.is_err() {
+            let error_message = message::ErrorMessage::InternalServerError;
+            return response(
+                StatusCode::InternalServerError,
+                error_message.to_code(),
+                Some(error_message.to_string()),
+                Option::<()>::None,
+            )
+        }
+    }
+
+    // Return the response
+    let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
     )
 }

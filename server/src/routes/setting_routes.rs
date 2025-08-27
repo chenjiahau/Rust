@@ -9,5 +9,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .wrap(mw::from_fn(middlewares::auth_middlewares::check_auth_middleware))
             .service(setting_handlers::get_setting)
             .service(setting_handlers::update_setting)
+            .service(setting_handlers::update_s_to_current_month)
   );
 }

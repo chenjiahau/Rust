@@ -1,10 +1,11 @@
-use actix_web::{web, get, put, HttpRequest, Responder};
+use actix_web::{web, get, post, put, HttpRequest, Responder};
 use httpstatus::StatusCode;
 use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter, Set};
 use uuid::Uuid;
 use validator::Validate;
-use chrono;
+use chrono::{Datelike, Utc};
 
+use entity::{settings, monthly_settings};
 use crate::models::setting_models;
 use crate::utils::app_state::AppState;
 use crate::utils::api_response::{get_user_id_from_request, response};
@@ -24,10 +25,10 @@ async fn get_setting(
     let user_id = get_user_id_from_request(&req).unwrap();
 
     // Check if the setting exist
-    let option_model = entity::settings::Entity::find()
+    let option_model = settings::Entity::find()
         .filter(
             Condition::all()
-                .add(entity::settings::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(settings::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
         )
         .one(&app_state.db)
         .await
@@ -87,10 +88,10 @@ async fn update_setting(
     }
 
     // Check if the setting exist
-    let option_model = entity::settings::Entity::find()
+    let option_model = settings::Entity::find()
         .filter(
             Condition::all()
-                .add(entity::settings::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(settings::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
         )
         .one(&app_state.db)
         .await
@@ -132,6 +133,112 @@ async fn update_setting(
     };
 
     let success_message = message::SuccessMessage::Success;
+    response(
+        StatusCode::Ok,
+        success_message.to_code(),
+        Some(success_message.to_string()),
+        Some(res),
+    )
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/setting/current",
+    security(("bearerAuth" = [])),
+    tag = "Setting",
+)]
+#[post("/current")]
+async fn update_s_to_current_month(
+    req: HttpRequest,
+    app_state: web::Data::<AppState>,
+) -> impl Responder {
+    let user_id = get_user_id_from_request(&req).unwrap();
+
+    // Get settings
+    let result = settings::Entity::find()
+        .filter(
+            Condition::all()
+                .add(settings::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+        )
+        .one(&app_state.db)
+        .await;
+
+    if result.is_err() {
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
+    let settings = result.unwrap();
+    if settings.is_none() {
+        let error_message = message::ErrorMessage::SettingNotFound;
+        return response(
+            StatusCode::NotFound,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
+    // Delete the current year and month of monthly_settings
+    let now = Utc::now();
+    let current_year = now.year();
+    let current_month = now.month();
+
+    let result = monthly_settings::Entity::delete_many()
+        .filter(
+            Condition::all()
+                .add(entity::monthly_settings::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(entity::monthly_settings::Column::Year.eq(Utc::now().year()))
+                .add(entity::monthly_settings::Column::Month.eq(Utc::now().month()))
+        )
+        .exec(&app_state.db)
+        .await;
+
+    if result.is_err() {
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
+    // Insert the settings to monthly_settings
+    let settings = settings.unwrap();
+    let new_monthly_setting = monthly_settings::ActiveModel {
+        user_id: Set(Uuid::parse_str(user_id.as_str()).unwrap()),
+        year: Set(current_year),
+        month: Set(current_month as i32),
+        income: Set(settings.default_income),
+        deposit: Set(settings.target_deposit as f64),
+        ..Default::default()
+    };
+
+    let result = new_monthly_setting.insert(&app_state.db).await;
+    if result.is_err() {
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
+    // Return the response
+    let success_message = message::SuccessMessage::Success;
+    let res = setting_models::SettingResponseModel {
+        default_income: settings.default_income,
+        target_deposit: settings.target_deposit,
+        updated_at: settings.updated_at.to_string(),
+    };
+
     response(
         StatusCode::Ok,
         success_message.to_code(),
