@@ -33,3 +33,6 @@ futures-util = "0.3.31"
 image = "0.25.6"
 utoipa = { version = "5.4.0", features = ["uuid"] }
 utoipa-swagger-ui = { version = "9.0.2", features = ["actix-web"] }
+aws-config = "=1.1.8"
+aws-sdk-s3 = "=1.2.0"
+aws-types = "=1.1.8"

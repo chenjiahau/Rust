@@ -8,14 +8,15 @@ use entity::users;
 use sha256::digest;
 use validator::Validate;
 use futures_util::TryStreamExt;
-use uuid::Uuid;
-use image::ImageFormat;
+use aws_sdk_s3::primitives::ByteStream;
+use image::ImageEncoder;
+use image::codecs::png::PngEncoder;
+use image::ColorType;
 
 use crate::models::user_models;
 use crate::utils::app_state::AppState;
 use crate::utils::api_response::{get_user_id_from_request, response};
 use crate::utils::message;
-use crate::utils::constants;
 
 const MAX_WIDTH: u32 = 1024; // 1024 pixels
 const MAX_HEIGHT: u32 = 1024; // 1024 pixels
@@ -226,68 +227,72 @@ async fn upload_user_avatar(
 ) -> impl Responder {
     let user_id = get_user_id_from_request(&req).unwrap();
 
-    // Check if the user exists
-    let option_model = users::Entity::find_by_id(uuid::Uuid::parse_str(user_id.as_str()).unwrap())
+    // Check user exists
+    let user_uuid = uuid::Uuid::parse_str(&user_id).unwrap();
+    let option_model = users::Entity::find_by_id(user_uuid)
         .one(&app_state.db)
         .await
         .unwrap();
 
     if option_model.is_none() {
-        let error_message = message::ErrorMessage::UserNotFound;
         return response(
             StatusCode::NotFound,
-            error_message.to_code(),
-            Some(error_message.to_string()),
+            message::ErrorMessage::UserNotFound.to_code(),
+            Some(message::ErrorMessage::UserNotFound.to_string()),
             Option::<()>::None,
         );
     }
 
-    // Upload the avatar ane save it to the server
-    let static_path = &constants::STATIC_PATH;
-    let upload_dir = "{}/avatars".replace("{}", static_path);
-    std::fs::create_dir_all(&upload_dir).unwrap();
-
-    while let Ok(Some(item)) = payload.try_next().await {
-        let mut field = item;
-
-        // Check if the field is named "avatar"
+    // Loop through multipart payload to find avatar field
+    while let Ok(Some(mut field)) = payload.try_next().await {
         if field.name() != Some("avatar") {
             continue;
         }
 
-        let content_type = field.content_type().map(|mime| mime.essence_str()).unwrap_or("");
+        let content_type = field
+            .content_type()
+            .map(|mime| mime.essence_str())
+            .unwrap_or("");
 
         if !ALLOWED_FILE_TYPES.contains(&content_type) {
-            let error_message = message::ErrorMessage::UserAvatarFileTypeNotAllowed;
             return response(
                 StatusCode::BadRequest,
-                error_message.to_code(),
-                Some(error_message.to_string()),
+                message::ErrorMessage::UserAvatarFileTypeNotAllowed.to_code(),
+                Some(message::ErrorMessage::UserAvatarFileTypeNotAllowed.to_string()),
                 Option::<()>::None,
             );
         }
 
+        // 3. Read and resize image
         let mut bytes = web::BytesMut::new();
         while let Some(chunk) = field.try_next().await.unwrap_or(None) {
             bytes.extend_from_slice(&chunk);
         }
 
-        // Resize the image to a maximum of 1024x1024 pixels(1 MB)
         let img = match image::load_from_memory(&bytes) {
             Ok(i) => i.resize(MAX_WIDTH, MAX_HEIGHT, image::imageops::FilterType::Lanczos3),
-            Err(_) => {
-                let error_message = message::ErrorMessage::UserAvatarFileFailedToUpload;
+            Err(e) => {
                 return response(
                     StatusCode::BadRequest,
-                    error_message.to_code(),
-                    Some(error_message.to_string()),
+                    message::ErrorMessage::UserAvatarFileFailedToUpload.to_code(),
+                    Some(message::ErrorMessage::UserAvatarFileFailedToUpload.to_string()),
                     Option::<()>::None,
                 );
-            },
+            }
         };
 
+        let rgba_image = img.to_rgba8();
         let mut out_buf = Cursor::new(Vec::new());
-        if img.write_to(&mut out_buf, ImageFormat::Png).is_err() {
+        let encoder = PngEncoder::new(&mut out_buf);
+        if encoder
+            .write_image(
+                &rgba_image,
+                rgba_image.width(),
+                rgba_image.height(),
+                ColorType::Rgba8.into(),
+            )
+            .is_err()
+        {
             return response(
                 StatusCode::InternalServerError,
                 message::ErrorMessage::InternalServerError.to_code(),
@@ -296,52 +301,72 @@ async fn upload_user_avatar(
             );
         }
 
-        // Upload to the server
-        std::fs::create_dir_all(upload_dir.clone()).unwrap();
-        let new_filename = format!("{}.png", Uuid::new_v4());
-        let out_path = format!("{}/{}", upload_dir, new_filename);
-        std::fs::write(out_path, out_buf.into_inner()).unwrap();
+        // Upload to S3
+        let new_filename = format!("avatars/{}.png", uuid::Uuid::new_v4());
+        let bucket = std::env::var("AWS_BUCKET_NAME").unwrap();
+        let region = std::env::var("AWS_REGION").unwrap();
 
-        // Update the user's avatar in the database
-        let user_model: users::ActiveModel = users::ActiveModel {
-            id: Set(uuid::Uuid::parse_str(user_id.as_str()).unwrap()),
-            avatar: Set(Some(new_filename)),
-            ..Default::default()
-        };
+        let s3 = crate::utils::s3::get_s3_client().await;
+        let upload_result = s3
+            .put_object()
+            .bucket(&bucket)
+            .key(&new_filename)
+            .body(ByteStream::from(out_buf.into_inner()))
+            .content_type("image/png")
+            .send()
+            .await;
 
-        let result = user_model.update(&app_state.db).await;
-        if result.is_err() {
-            let error_message = message::ErrorMessage::InternalServerError;
+        if upload_result.is_err() {
             return response(
                 StatusCode::InternalServerError,
-                error_message.to_code(),
-                Some(error_message.to_string()),
+                message::ErrorMessage::UserAvatarFileFailedToUpload.to_code(),
+                Some(message::ErrorMessage::UserAvatarFileFailedToUpload.to_string()),
                 Option::<()>::None,
             );
         }
 
-        // Return the updated user profile
-        let model = result.unwrap();
-        let res = user_models::UserProfileModel {
-            name: model.name,
-            avatar: model.avatar,
+        // 5. Save avatar path to DB
+        let public_url = format!("https://{}.s3.{}.amazonaws.com/{}",bucket, region, new_filename);
+        let mut user_model: users::ActiveModel = users::ActiveModel {
+            id: Set(user_uuid),
+            avatar: Set(Some(public_url.clone())),
+            ..Default::default()
         };
-        let success_message = message::SuccessMessage::Success;
+
+        let update_result = user_model.update(&app_state.db).await;
+        if update_result.is_err() {
+            return response(
+                StatusCode::InternalServerError,
+                message::ErrorMessage::InternalServerError.to_code(),
+                Some(message::ErrorMessage::InternalServerError.to_string()),
+                Option::<()>::None,
+            );
+        }
+
+        let public_url = format!(
+            "https://{}.s3.{}.amazonaws.com/{}",
+            bucket, region, new_filename
+        );
+
+        let user = update_result.unwrap();
+        let res = user_models::UserProfileModel {
+            name: user.name,
+            avatar: Some(public_url),
+        };
 
         return response(
             StatusCode::Ok,
-            success_message.to_code(),
-            Some(success_message.to_string()),
+            message::SuccessMessage::Success.to_code(),
+            Some(message::SuccessMessage::Success.to_string()),
             Some(res),
         );
     }
 
-    // If it reaches here, it means no file was uploaded
-    let error_message = message::ErrorMessage::UserAvatarFileFailedToUpload;
+    // 6. No valid file found
     response(
         StatusCode::BadRequest,
-        error_message.to_code(),
-        Some(error_message.to_string()),
+        message::ErrorMessage::UserAvatarFileFailedToUpload.to_code(),
+        Some(message::ErrorMessage::UserAvatarFileFailedToUpload.to_string()),
         Option::<()>::None,
     )
 }
