@@ -19,7 +19,7 @@ pub struct PlacesResponseModel {
     pub places: Vec<PlaceModel>,
 }
 
-#[derive(Deserialize, Validate, ToSchema)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct PlaceRequestModel {
     #[serde(rename = "scId")]
     pub spending_category_id: i64,

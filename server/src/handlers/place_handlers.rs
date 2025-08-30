@@ -115,6 +115,7 @@ async fn create_place(
         .filter(
             Condition::all()
                 .add(places::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(places::Column::SpendingCategoryId.eq(req.spending_category_id))
                 .add(places::Column::Name.eq(req.name.clone()))
         )
         .one(&app_state.db)
@@ -206,6 +207,7 @@ async fn update_place(
         .filter(
             Condition::all()
                 .add(places::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(places::Column::SpendingCategoryId.eq(req.spending_category_id))
                 .add(places::Column::Id.eq(param.id))
         )
         .one(&app_state.db)
@@ -227,6 +229,7 @@ async fn update_place(
         .filter(
             Condition::all()
                 .add(places::Column::UserId.eq(Uuid::parse_str(user_id.as_str()).unwrap()))
+                .add(places::Column::SpendingCategoryId.eq(req.spending_category_id))
                 .add(places::Column::Name.eq(req.name.clone()))
                 .add(places::Column::Id.ne(param.id))
         )
