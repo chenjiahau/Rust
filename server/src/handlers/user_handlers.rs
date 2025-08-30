@@ -271,7 +271,7 @@ async fn upload_user_avatar(
 
         let img = match image::load_from_memory(&bytes) {
             Ok(i) => i.resize(MAX_WIDTH, MAX_HEIGHT, image::imageops::FilterType::Lanczos3),
-            Err(e) => {
+            Err(_) => {
                 return response(
                     StatusCode::BadRequest,
                     message::ErrorMessage::UserAvatarFileFailedToUpload.to_code(),
@@ -327,7 +327,7 @@ async fn upload_user_avatar(
 
         // 5. Save avatar path to DB
         let public_url = format!("https://{}.s3.{}.amazonaws.com/{}",bucket, region, new_filename);
-        let mut user_model: users::ActiveModel = users::ActiveModel {
+        let user_model: users::ActiveModel = users::ActiveModel {
             id: Set(user_uuid),
             avatar: Set(Some(public_url.clone())),
             ..Default::default()

@@ -9,7 +9,7 @@ pub async fn get_s3_client() -> Client {
     .or_default_provider()
     .or_else(Region::new("ap-northeast-1"));
 
-    let config = aws_config::from_env()
+    let config = aws_config::defaults(aws_config::BehaviorVersion::latest())
         .region(region_provider)
         .load()
         .await;

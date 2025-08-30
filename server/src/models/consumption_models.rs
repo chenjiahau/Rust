@@ -47,11 +47,6 @@ pub struct ConsumptionRequestModel {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct ConsumptionsResponseModel {
-    pub consumptions: Vec<ConsumptionModel>,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct WholeConsumptionsResponseModel {
     pub consumptions: Vec<WholeConsumptionModel>,
 }
