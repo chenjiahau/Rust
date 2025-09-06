@@ -87,6 +87,7 @@ pub enum ErrorMessage {
   MonthlySettingNotFound,
   MonthlySettingNotDeleted,
   MonthlySettingNotCreated,
+  // Statistic messages
 }
 
 impl ErrorMessage {
@@ -136,6 +137,7 @@ impl ErrorMessage {
       ErrorMessage::MonthlySettingNotFound => "Monthly Setting Not Found".to_string(),
       ErrorMessage::MonthlySettingNotDeleted => "Monthly Setting Not Deleted".to_string(),
       ErrorMessage::MonthlySettingNotCreated => "Monthly Setting Not Created".to_string(),
+      // Statistic messages
     }
   }
 
@@ -185,6 +187,7 @@ impl ErrorMessage {
       ErrorMessage::MonthlySettingNotFound => 9000,
       ErrorMessage::MonthlySettingNotDeleted => 9001,
       ErrorMessage::MonthlySettingNotCreated => 9002,
+      // Statistic messages
     }
   }
 }

@@ -8,3 +8,4 @@ pub mod spending_category_handlers;
 pub mod consumption_handlers;
 pub mod monthly_budget_handlers;
 pub mod monthly_setting_handlers;
+pub mod statistic_handlers;

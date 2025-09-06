@@ -7,3 +7,4 @@ pub mod spending_category_models;
 pub mod consumption_models;
 pub mod monthly_budget_models;
 pub mod monthly_setting_models;
+pub mod statistic_models;

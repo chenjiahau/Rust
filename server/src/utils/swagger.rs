@@ -37,6 +37,7 @@ use crate::models;
         handlers::monthly_setting_handlers::get_monthly_setting_count,
         handlers::monthly_setting_handlers::get_monthly_setting,
         handlers::monthly_setting_handlers::create_monthly_setting,
+        handlers::statistic_handlers::get_monthly_report,
     ),
     components(
         schemas(
@@ -51,6 +52,7 @@ use crate::models;
             models::spending_category_models::SpendingCategoryRequestModel,
             models::place_models::PlaceRequestModel,
             models::consumption_models::ConsumptionRequestModel,
+            models::statistic_models::MonthlyReportResponseModel,
         )
     ),
     modifiers(&SecurityAddon) 
