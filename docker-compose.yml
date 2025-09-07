@@ -1,16 +1,16 @@
 services:
-  db:
-    build:
-      context: ./db
-      dockerfile: Dockerfile
-    container_name: accounting-db
-    env_file:
-      - "./db.env"
-    ports:
-      - "5433:5432"
-    restart: always
-    networks:
-      - shared-network
+  # db:
+  #   build:
+  #     context: ./db
+  #     dockerfile: Dockerfile
+  #   container_name: accounting-db
+  #   env_file:
+  #     - "./db.env"
+  #   ports:
+  #     - "5433:5432"
+  #   restart: always
+  #   networks:
+  #     - shared-network
   api:
     build:
       context: ./server
@@ -20,13 +20,13 @@ services:
       - ./server/.env
     ports:
       - "8081:8080"
-    depends_on:
-      - db
+    # depends_on:
+    #   - db
     networks:
       - shared-network
 
-volumes:
-  postgres_data:
+# volumes:
+#   postgres_data:
 
 networks:
   shared-network:
