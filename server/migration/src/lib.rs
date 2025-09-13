@@ -12,6 +12,7 @@ mod m20250808_055617_add_date_column_to_consumption_table;
 mod m20250808_105138_create_monthly_budget_table;
 mod m20250812_064500_rename_monthly_budget_table_to_monthly_budgets_table;
 mod m20250812_070832_create_monthly_settings_table;
+mod m20250912_235136_add_security_password_column_to_users_table;
 
 pub struct Migrator;
 
@@ -31,6 +32,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20250808_105138_create_monthly_budget_table::Migration),
             Box::new(m20250812_064500_rename_monthly_budget_table_to_monthly_budgets_table::Migration),
             Box::new(m20250812_070832_create_monthly_settings_table::Migration),
+            Box::new(m20250912_235136_add_security_password_column_to_users_table::Migration),
         ]
     }
 }

@@ -6,12 +6,14 @@ use utoipa::ToSchema;
 pub struct UserProfileModel {
     pub name: String,
     pub avatar: Option<String>,
+    pub security_password: String,
 }
 
 #[derive(Deserialize, Validate, ToSchema)]
 pub struct UserProfileUpdateRequestModel {
     #[validate(length(min = 1, max = 32))]
     pub name: String,
+    pub security_password: String,
 }
 
 #[derive(Deserialize, Validate, ToSchema)]

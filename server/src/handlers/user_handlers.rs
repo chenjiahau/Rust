@@ -57,6 +57,7 @@ async fn get_user_profile(
     let res = user_models::UserProfileModel {
         name: model.name,
         avatar: model.avatar,
+        security_password: model.security_password,
     };
     let success_message = message::SuccessMessage::Success;
   
@@ -100,6 +101,7 @@ async fn update_user_profile(
     let user_model: users::ActiveModel = users::ActiveModel {
         id: Set(uuid::Uuid::parse_str(user_id.as_str()).unwrap()),
         name: Set(req.name.clone()),
+        security_password: Set(req.security_password.clone()),
         ..Default::default()
     };
 
@@ -119,6 +121,7 @@ async fn update_user_profile(
     let res = user_models::UserProfileModel {
         name: model.name,
         avatar: model.avatar,
+        security_password: model.security_password,
     };
     let success_message = message::SuccessMessage::Success;
 
@@ -208,6 +211,7 @@ async fn update_user_password(
     let res = user_models::UserProfileModel {
         name: model.name,
         avatar: model.avatar,
+        security_password: model.security_password,
     };
     let success_message = message::SuccessMessage::Success;
 
@@ -352,6 +356,7 @@ async fn upload_user_avatar(
         let res = user_models::UserProfileModel {
             name: user.name,
             avatar: Some(public_url),
+            security_password: user.security_password,
         };
 
         return response(
