@@ -168,12 +168,14 @@ async fn get_monthly_report(
     for mut budget in spending_category_models {
         if let Some(&expense) = spending_map.get(&budget.spending_category_id) {
             budget.expense = expense as i64;
+            println!("Budget: {:?}, Expense: {}", budget, expense);
             budget.percentage_used = if budget.budget == 0 {
-                0.0
+                expense / 1.0
             } else {
                ((expense / budget.budget as f64) * 100.0) / 100.0
             };
 
+            println!("Total Expense: {}", total_expense);
             total_expense += expense as i64;
         }
         budgets.push(budget);
