@@ -36,3 +36,5 @@ utoipa-swagger-ui = { version = "9.0.2", features = ["actix-web"] }
 aws-config = "=1.1.8"
 aws-sdk-s3 = "=1.2.0"
 aws-types = "=1.1.8"
+lettre = { version = "0.11", features = ["tokio1-native-tls"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

@@ -9,6 +9,7 @@ use crate::models;
     paths(
         handlers::unauth_handlers::signup,
         handlers::unauth_handlers::signin,
+        handlers::unauth_handlers::create_new_password_by_email,
         handlers::user_handlers::get_user_profile,
         handlers::user_handlers::update_user_profile,
         handlers::user_handlers::update_user_password,
@@ -46,6 +47,7 @@ use crate::models;
             models::unauth_models::SignupResponseModel,
             models::unauth_models::SigninRequestModel,
             models::unauth_models::SigninResponseModel,
+            models::unauth_models::ForgotPasswordRequestModel,
             models::user_models::UserProfileUpdateRequestModel,
             models::user_models::UserPasswordUpdateRequestModel,
             models::setting_models::SettingRequestModel,

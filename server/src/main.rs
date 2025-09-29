@@ -25,6 +25,11 @@ async fn main() -> std::io::Result<()> {
     let address = (utils::constants::ADDRESS).clone();
     let port: u16 = (utils::constants::PORT).clone();
     let static_path = (utils::constants::STATIC_PATH).clone();
+    let smtp_host = (utils::constants::SMTP_HOST).clone();
+    let smtp_port = (utils::constants::SMTP_PORT).clone();
+    let smtp_username = (utils::constants::SMTP_USERNAME).clone();
+    let smtp_password = (utils::constants::SMTP_PASSWORD).clone();
+    let smtp_sender = (utils::constants::SMTP_SENDER).clone();
 
     // Initialize the database connection
     let db = utils::db_connection::establish_connection(utils::constants::DATABASE_URL.to_string()).await;
@@ -34,6 +39,11 @@ async fn main() -> std::io::Result<()> {
         name,
         version,
         db,
+        smtp_host,
+        smtp_port,
+        smtp_username,
+        smtp_password,
+        smtp_sender,
     };
 
     // Start the server

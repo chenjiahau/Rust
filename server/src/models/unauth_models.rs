@@ -44,3 +44,9 @@ pub struct SigninResponseModel {
     pub token: Option<TokenModel>,
     pub registered_at: String,
 }
+
+#[derive(Deserialize, Validate, ToSchema)]
+pub struct ForgotPasswordRequestModel {
+    #[validate(email)]
+    pub email: String,
+}

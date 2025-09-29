@@ -6,6 +6,9 @@ use sha256::digest;
 use uuid::Uuid;
 use std::fs::File;
 use std::io::BufReader;
+use lettre::{AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor};
+use lettre::transport::smtp::authentication::Credentials;
+use lettre::message::Mailbox;
 
 use crate::models::{unauth_models, spending_category_models};
 use crate::utils::app_state::AppState;
@@ -255,4 +258,150 @@ async fn signin(
 
     let success_message = message::SuccessMessage::Success;
     response(StatusCode::Ok, success_message.to_code(), Some(success_message.to_string()), Some(res))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/unauth/forgot-password",
+    request_body = inline(unauth_models::ForgotPasswordRequestModel),
+    tag = "Unauth",
+)]
+#[post("/forgot-password")]
+async fn create_new_password_by_email(
+    app_state: web::Data::<AppState>,
+    data: web::Json<unauth_models::ForgotPasswordRequestModel>,
+) -> impl Responder {
+    let req = data.into_inner();
+
+    if req.validate().is_err() {
+        let error_message = message::ErrorMessage::InvalidRequest;
+        return response(
+            StatusCode::BadRequest,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
+    let user = entity::users::Entity::find()
+        .filter(entity::users::Column::Email.eq(&req.email))
+        .one(&app_state.db)
+        .await
+        .unwrap();
+
+    // If user is not found, send success response to avoid email enumeration
+    if user.is_none() {
+        return response(
+            StatusCode::Ok,
+            message::SuccessMessage::CreatedNewUserPassword.to_code(),
+            Some(message::SuccessMessage::CreatedNewUserPassword.to_string()),
+            Option::<()>::None,
+        );
+    }
+
+    let user = user.unwrap();
+    let new_password = Uuid::new_v4().to_string()[..8].to_string();
+    let hashed_password = digest(new_password.clone());
+    let update_result = entity::users::ActiveModel {
+        id: Set(user.id),
+        password: Set(hashed_password),
+        ..Default::default()
+    }
+    .update(&app_state.db)
+    .await;
+
+    if update_result.is_err() {
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
+    // Send email with the new password
+    let from = app_state.smtp_sender.clone();
+    let to = user.email.clone();
+    let subject = "Your New Password";
+    let body = format!("Your new password is: {}\nPlease change it after logging in.", new_password);
+    let from_mailbox = match from.parse::<Mailbox>() {
+        Ok(mb) => mb,
+        Err(_) => {
+            let error_message = message::ErrorMessage::InternalServerError;
+            return response(
+                StatusCode::InternalServerError,
+                error_message.to_code(),
+                Some(error_message.to_string()),
+                Option::<()>::None,
+            );
+        }
+    };
+    let to_mailbox = match to.parse::<Mailbox>() {
+        Ok(mb) => mb,
+        Err(_) => {
+            let error_message = message::ErrorMessage::InternalServerError;
+            return response(
+                StatusCode::InternalServerError,
+                error_message.to_code(),
+                Some(error_message.to_string()),
+                Option::<()>::None,
+            );
+        }
+    };
+    let email = match Message::builder()
+        .from(from_mailbox)
+        .to(to_mailbox)
+        .subject(subject)
+        .body(body.to_string()) {
+            Ok(email) => email,
+            Err(_) => {
+                let error_message = message::ErrorMessage::InternalServerError;
+                return response(
+                    StatusCode::InternalServerError,
+                    error_message.to_code(),
+                    Some(error_message.to_string()),
+                    Option::<()>::None,
+                );
+            }
+        };
+
+    let smtp_host = app_state.smtp_host.clone();
+    let smtp_port = app_state.smtp_port;
+    let smtp_user = app_state.smtp_username.clone();
+    let smtp_pass = app_state.smtp_password.clone();
+
+    let creds = Credentials::new(smtp_user, smtp_pass);
+    let mailer = match AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&smtp_host) {
+        Ok(builder) => builder
+            .credentials(creds)
+            .port(smtp_port)
+            .build(),
+        Err(_) => {
+            let error_message = message::ErrorMessage::InternalServerError;
+            return response(
+                StatusCode::InternalServerError,
+                error_message.to_code(),
+                Some(error_message.to_string()),
+                Option::<()>::None,
+            );
+        }
+    };
+
+    if let Err(_) = mailer.send(email).await {
+        let error_message = message::ErrorMessage::InternalServerError;
+        return response(
+            StatusCode::InternalServerError,
+            error_message.to_code(),
+            Some(error_message.to_string()),
+            Option::<()>::None,
+        );
+    }
+
+    response(
+        StatusCode::Ok,
+        message::SuccessMessage::CreatedNewUserPassword.to_code(),
+        Some(message::SuccessMessage::CreatedNewUserPassword.to_string()),
+        Option::<()>::None,
+    )
 }

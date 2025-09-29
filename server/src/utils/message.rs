@@ -22,6 +22,7 @@ pub enum SuccessMessage {
   // Common messages
   Success,
   CreatedSuccessfully,
+  CreatedNewUserPassword,
 }
 
 impl SuccessMessage {
@@ -30,6 +31,7 @@ impl SuccessMessage {
       // Common messages
       SuccessMessage::Success => "Success".to_string(),
       SuccessMessage::CreatedSuccessfully => "Created Successfully".to_string(),
+      SuccessMessage::CreatedNewUserPassword => "Your new password has been created successfully, please check your email.".to_string(),
     }
   }
 
@@ -38,6 +40,7 @@ impl SuccessMessage {
       // Common messages
       SuccessMessage::Success => 1000,
       SuccessMessage::CreatedSuccessfully => 1001,
+      SuccessMessage::CreatedNewUserPassword => 1002,
     }
   }
 }

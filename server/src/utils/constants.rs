@@ -10,6 +10,11 @@ lazy_static! {
     pub static ref TOKEN_EXPIRATION_TIME: i64 = set_token_expiration_time();
     pub static ref SECRET_KEY: String = set_secret_key();
     pub static ref STATIC_PATH: String = set_static_path();
+    pub static ref SMTP_HOST: String = set_smtp_host();
+    pub static ref SMTP_PORT: u16 = set_smtp_port();
+    pub static ref SMTP_USERNAME: String = set_smtp_username();
+    pub static ref SMTP_PASSWORD: String = set_smtp_password();
+    pub static ref SMTP_SENDER: String = set_smtp_sender();
 }
 
 fn set_name() -> String {
@@ -45,4 +50,24 @@ fn set_secret_key() -> String {
 
 fn set_static_path() -> String {
     env::var("STATIC_PATH").unwrap().to_string()
+}
+
+fn set_smtp_host() -> String {
+    env::var("SMTP_HOST").unwrap().to_string()
+}
+
+fn set_smtp_port() -> u16 {
+    env::var("SMTP_PORT").unwrap().parse().unwrap()
+}
+
+fn set_smtp_username() -> String {
+    env::var("SMTP_USERNAME").unwrap().to_string()
+}
+
+fn set_smtp_password() -> String {
+    env::var("SMTP_PASSWORD").unwrap().to_string()
+}
+
+fn set_smtp_sender() -> String {
+    env::var("SMTP_SENDER").unwrap().to_string()
 }

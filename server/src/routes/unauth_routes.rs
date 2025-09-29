@@ -6,5 +6,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         web::scope("/api/unauth")
             .service(handlers::unauth_handlers::signup)
             .service(handlers::unauth_handlers::signin)
+            .service(handlers::unauth_handlers::create_new_password_by_email)
     );
 }
