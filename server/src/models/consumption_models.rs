@@ -41,7 +41,7 @@ pub struct ConsumptionRequestModel {
     pub spending_category_id: i64,
     #[validate(range(min = 0.0))]
     pub amount: f64,
-    #[validate(length(min = 1, max = 255))]
+    #[validate(length(min = 0, max = 255))]
     pub description: Option<String>,
 
 }
